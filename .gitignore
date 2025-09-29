@@ -1,0 +1,27 @@
+# Arquivo gerado para o projeto AT-Field
+
+### Geral ###
+node_modules/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+logs/
+
+### Ferramentas e Caches ###
+.turbo/
+.idea/
+.vscode/
+
+### Build Outputs ###
+dist/
+.next/
+build/
+.expo/
+
+### OS Files ###
+.DS_Store
+Thumbs.db
