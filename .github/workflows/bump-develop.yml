@@ -1,0 +1,70 @@
+# Nome do Workflow
+name: 'CI: Bump Version on Develop'
+
+# Gatilho (Trigger)
+on:
+  pull_request:
+    types:
+      - closed # Executa quando uma Pull Request é fechada
+    branches:
+      - develop # Apenas para PRs direcionadas à branch 'develop'
+
+jobs:
+  bump-version:
+    # Garante que o job só rode se a PR foi de fato 'merged'
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Permite que a Action escreva (crie tags) no repositório
+
+    steps:
+      # 1. Faz o checkout do código do repositório
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          # Busca todo o histórico para ter acesso a todas as tags
+          fetch-depth: 0
+
+      # 2. Busca a tag mais recente na branch develop
+      - name: Get Latest Tag
+        id: get_tag
+        run: |
+          # Tenta encontrar a última tag de develop. Se não achar,
+          # tenta a última tag de produção. Se não achar, começa com v0.0.0
+          LATEST_TAG=$(git describe --tags --match "v*.*.*-develop" --abbrev=0 || git describe --tags --match "v*.*.*" --abbrev=0 || echo "v0.0.0-develop")
+          echo "Current latest tag: $LATEST_TAG"
+          echo "current_tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+
+      # 3. Determina qual será a próxima versão (incrementando o patch)
+      - name: Determine Next Version
+        id: next_version
+        run: |
+          CURRENT_TAG=${{ steps.get_tag.outputs.current_tag }}
+          # Remove o 'v' do início e o sufixo '-develop' do final para ter apenas o número
+          VERSION_NUMBER=$(echo $CURRENT_TAG | sed 's/^v//' | sed 's/-.*$//')
+
+          # Quebra a versão em partes (major.minor.patch)
+          IFS='.' read -r -a VERSION_PARTS <<< "$VERSION_NUMBER"
+          MAJOR=${VERSION_PARTS[0]}
+          MINOR=${VERSION_PARTS[1]}
+          PATCH=${VERSION_PARTS[2]}
+
+          # Incrementa o patch
+          NEXT_PATCH=$((PATCH + 1))
+          # Monta a nova tag com o sufixo '-develop'
+          NEXT_VERSION="v$MAJOR.$MINOR.$NEXT_PATCH-develop"
+
+          echo "Next version: $NEXT_VERSION"
+          echo "new_tag=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      # 4. Cria e envia a nova tag para o repositório
+      - name: Create and Push New Tag
+        run: |
+          NEW_TAG=${{ steps.next_version.outputs.new_tag }}
+          # Configura o usuário do Git para o bot do GitHub Actions
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Cria a tag anotada
+          git tag -a $NEW_TAG -m "Auto-bumped version to $NEW_TAG on develop merge"
+          # Envia a nova tag para a 'origin'
+          git push origin $NEW_TAG
