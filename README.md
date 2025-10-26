@@ -64,8 +64,8 @@ pnpm --filter mobile start
 ## 🗺️ Roadmap de Desenvolvimento
 
 ### Fase 0: Configuração do Ambiente e Base
-- [ ] Inicialização do monorepo com Turborepo.
-- [ ] Criação dos projetos base: Next.js, React Native (Expo) e NestJS.
+- [X] Inicialização do monorepo com Turborepo.
+- [X] Criação dos projetos base: Next.js, React Native (Expo) e NestJS.
 - [ ] Configuração da conexão com o banco de dados PostgreSQL local.
 - [ ] Estruturação inicial do banco de dados (primeiras migrations).
 
