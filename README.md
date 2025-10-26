@@ -1,6 +1,6 @@
 # Projeto AT-Field
 
-![Status](https://img.shields.io/badge/status-em%20desenvolvimento-blue)
+![Status](https://img.shields.io/badge/status-em%20desenvolvimento-blue) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Um sistema completo para gestão de serviços de campo (Field Service), projetado para otimizar o fluxo de trabalho desde a abertura do chamado até o faturamento do cliente.
 
@@ -105,6 +105,10 @@ pnpm --filter mobile start
 - [ ] Dashboard com métricas no Painel Web.
 - [ ] Notificações Push para o App Mobile.
 - [ ] Captura de assinatura digital do cliente no App Mobile.
+
+## 📜 Licença
+
+Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
 
 ---
 Feito com ❤️ por **Alberto H Tsugawa**.
