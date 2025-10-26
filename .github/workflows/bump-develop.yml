@@ -61,13 +61,16 @@ jobs:
           echo "Chaves encontradas: $ISSUE_KEYS"
           echo "keys=$ISSUE_KEYS" >> $GITHUB_OUTPUT
 
+      - name: Jira Login
+        uses: atlassian/gajira-login@v3
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+
       - name: Add Comment to Jira Issues
-        # Só executa se encontrou alguma chave
         if: steps.find_jira_keys.outputs.keys != ''
         uses: atlassian/gajira-comment@v3
         with:
-          issues: ${{ steps.find_jira_keys.outputs.keys }}
+          issue: ${{ steps.find_jira_keys.outputs.keys }}
           comment: '✅ Entregue na versão de desenvolvimento ${{ steps.next_version.outputs.new_tag }}'
-          jira-base-url: ${{ secrets.JIRA_BASE_URL }}
-          jira-user-email: ${{ secrets.JIRA_USER_EMAIL }}
-          jira-api-token: ${{ secrets.JIRA_API_TOKEN }}
