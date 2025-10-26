@@ -1,7 +1,5 @@
-# Nome do Workflow
 name: 'CI: Bump Version & Update Jira (Develop)'
 
-# Gatilho (Trigger)
 on:
   pull_request:
     types:
@@ -17,7 +15,6 @@ jobs:
       contents: write
 
     steps:
-      # ... os passos 1, 2, 3 e 4 (Checkout, Get Tag, Determine Version, Push Tag) continuam EXATAMENTE os mesmos ...
 
       - name: Checkout Code
         uses: actions/checkout@v4
