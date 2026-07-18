@@ -107,7 +107,7 @@ pnpm --filter mobile start
 - [ ] Captura de assinatura digital do cliente no App Mobile.
 
 ### Bonus: Integrações
-- [] ASAAS
+- [ ] ASAAS
 
 ---
 Feito com ❤️ por **Alberto H Tsugawa**.
