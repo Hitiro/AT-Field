@@ -106,6 +106,9 @@ pnpm --filter mobile start
 - [ ] Notificações Push para o App Mobile.
 - [ ] Captura de assinatura digital do cliente no App Mobile.
 
+### Bonus: Integrações
+- [] ASAAS
+
 ## 📜 Licença
 
 Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
