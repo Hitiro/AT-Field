@@ -106,5 +106,8 @@ pnpm --filter mobile start
 - [ ] Notificações Push para o App Mobile.
 - [ ] Captura de assinatura digital do cliente no App Mobile.
 
+### Bonus: Integrações
+- [] ASAAS
+
 ---
 Feito com ❤️ por **Alberto H Tsugawa**.
