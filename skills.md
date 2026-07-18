@@ -14,7 +14,7 @@
 - **Diretrizes:**
   - **Auth:** Utilizar o Firebase Authentication para login. A API NestJS valida o Bearer Token em rotas protegidas.
   - **Push Notifications:** Utilizar o Firebase Cloud Messaging (FCM) para envio ilimitado de notificações para o app mobile.
-  - **Storage de Arquivos (RAT):** As fotos dos Relatórios de Atendimento Técnico (RATs) devem ser salvas **localmente no servidor** (via upload direto para a API NestJS e persistidas em disco/volume), deixando o Firebase fora do armazenamento de arquivos.
+  - **Storage de Arquivos (RAT):** As fotos dos Relatórios de Atendimento Técnico (RATs) devem ser salvas **localmente no servidor** via upload direto para a API NestJS, sendo obrigatoriamente persistidas em um **Volume Mapeado do Docker**, garantindo a retenção dos dados em ambientes conteinerizados.
 
 ---
 
