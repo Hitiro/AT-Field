@@ -31,6 +31,6 @@ async function bootstrap() {
   // O primeiro argumento é o "document" do swagger que geramos acima
   await RedocModule.setup('/api', app, document, redocOptions);
 
-  await app.listen(process.env.PORT || 4000);
+  await app.listen(process.env.PORT || 4310);
 }
 bootstrap();

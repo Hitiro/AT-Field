@@ -38,7 +38,9 @@ pnpm --filter web dev
 pnpm --filter mobile dev
 ```
 
-Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`PORT`, `DATABASE_HOST/PORT/USER/PASSWORD/NAME`).
+**Portas** (bloco 43xx reservado, para não conflitar com outros projetos locais): API `4310`, Web `4311`, Mobile/Metro `4312`, PostgreSQL `54310`. A da API e a do banco vêm do `.env`.
+
+Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `PORT`, `DATABASE_HOST/PORT/USER/PASSWORD/NAME`).
 
 ## Arquitetura e regras
 

@@ -25,6 +25,10 @@ Alinhar documentação e configuração do repositório antes de iniciar o cadas
 - **Asaas:** sincronização por job com retry, não dentro da requisição.
 - **Projeto solo, sem Jira:** commits sem chave de issue; branches `feat/`, `fix/`, `docs/`, `chore/`.
 
+## Portas
+
+Bloco 43xx reservado (3000, 3001 e 5432 já estavam em uso na máquina de desenvolvimento): API 4310, Web 4311, Mobile/Metro 4312, PostgreSQL 54310.
+
 ## Como validar
 
 ```bash
