@@ -6,40 +6,40 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
-} from 'typeorm'
-import type { DocumentType } from '@at-field/dto'
-import { Membership } from '../../memberships/entities/membership.entity'
-import { Role } from '../../roles/entities/role.entity'
+} from 'typeorm';
+import type { DocumentType } from '@at-field/dto';
+import { Membership } from '../../memberships/entities/membership.entity';
+import { Role } from '../../roles/entities/role.entity';
 
 @Entity('tenants')
 export class Tenant {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  id!: string;
 
   @Column({ type: 'enum', enum: ['CPF', 'CNPJ'], enumName: 'document_type' })
-  documentType!: DocumentType
+  documentType!: DocumentType;
 
   @Column({ type: 'varchar', length: 14, unique: true })
-  document!: string
+  document!: string;
 
   @Column({ type: 'varchar', length: 150 })
-  name!: string
+  name!: string;
 
   @Column({ type: 'boolean', default: true })
-  isActive!: boolean
+  isActive!: boolean;
 
-  @OneToMany(() => Membership, membership => membership.tenant)
-  memberships!: Membership[]
+  @OneToMany(() => Membership, (membership) => membership.tenant)
+  memberships!: Membership[];
 
-  @OneToMany(() => Role, role => role.tenant)
-  roles!: Role[]
+  @OneToMany(() => Role, (role) => role.tenant)
+  roles!: Role[];
 
   @CreateDateColumn()
-  createdAt!: Date
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  updatedAt!: Date;
 
   @DeleteDateColumn()
-  deletedAt!: Date | null
+  deletedAt!: Date | null;
 }

@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const envSchema = z.object({
   NODE_ENV: z
@@ -10,9 +10,9 @@ export const envSchema = z.object({
   DATABASE_USER: z.string().min(1),
   DATABASE_PASSWORD: z.string().min(1),
   DATABASE_NAME: z.string().min(1),
-})
+});
 
-export type Env = z.infer<typeof envSchema>
+export type Env = z.infer<typeof envSchema>;
 
 export const validateEnv = (config: Record<string, unknown>): Env =>
-  envSchema.parse(config)
+  envSchema.parse(config);

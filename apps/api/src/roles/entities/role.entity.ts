@@ -9,28 +9,28 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
-} from 'typeorm'
-import { Tenant } from '../../tenants/entities/tenant.entity'
-import { Permission } from './permission.entity'
+} from 'typeorm';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Permission } from './permission.entity';
 
 @Entity('roles')
 @Unique(['tenantId', 'name'])
 export class Role {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  id!: string;
 
   @Column({ type: 'uuid' })
-  tenantId!: string
+  tenantId!: string;
 
-  @ManyToOne(() => Tenant, tenant => tenant.roles, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Tenant, (tenant) => tenant.roles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenantId' })
-  tenant!: Tenant
+  tenant!: Tenant;
 
   @Column({ type: 'varchar', length: 60 })
-  name!: string
+  name!: string;
 
   @Column({ type: 'boolean', default: false })
-  isSystem!: boolean
+  isSystem!: boolean;
 
   @ManyToMany(() => Permission)
   @JoinTable({
@@ -38,11 +38,11 @@ export class Role {
     joinColumn: { name: 'roleId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'permissionId', referencedColumnName: 'id' },
   })
-  permissions!: Permission[]
+  permissions!: Permission[];
 
   @CreateDateColumn()
-  createdAt!: Date
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  updatedAt!: Date;
 }

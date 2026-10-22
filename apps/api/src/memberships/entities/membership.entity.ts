@@ -7,40 +7,40 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
-} from 'typeorm'
-import type { MembershipStatus } from '@at-field/dto'
-import { Role } from '../../roles/entities/role.entity'
-import { Tenant } from '../../tenants/entities/tenant.entity'
-import { User } from '../../users/entities/user.entity'
+} from 'typeorm';
+import type { MembershipStatus } from '@at-field/dto';
+import { Role } from '../../roles/entities/role.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('memberships')
 @Unique(['userId', 'tenantId'])
 export class Membership {
   @PrimaryGeneratedColumn('uuid')
-  id!: string
+  id!: string;
 
   @Column({ type: 'uuid' })
-  userId!: string
+  userId!: string;
 
-  @ManyToOne(() => User, user => user.memberships, { onDelete: 'CASCADE' })
+  @ManyToOne(() => User, (user) => user.memberships, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user!: User
+  user!: User;
 
   @Column({ type: 'uuid' })
-  tenantId!: string
+  tenantId!: string;
 
-  @ManyToOne(() => Tenant, tenant => tenant.memberships, {
+  @ManyToOne(() => Tenant, (tenant) => tenant.memberships, {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'tenantId' })
-  tenant!: Tenant
+  tenant!: Tenant;
 
   @Column({ type: 'uuid' })
-  roleId!: string
+  roleId!: string;
 
   @ManyToOne(() => Role, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'roleId' })
-  role!: Role
+  role!: Role;
 
   @Column({
     type: 'enum',
@@ -48,11 +48,11 @@ export class Membership {
     enumName: 'membership_status',
     default: 'invited',
   })
-  status!: MembershipStatus
+  status!: MembershipStatus;
 
   @CreateDateColumn()
-  createdAt!: Date
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt!: Date
+  updatedAt!: Date;
 }

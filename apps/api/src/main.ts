@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { RedocModule, RedocOptions } from 'nestjs-redoc';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,7 +15,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .addTag('at-field')
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = cleanupOpenApiDoc(SwaggerModule.createDocument(app, config));
 
   // Configuração do Redocly
   const redocOptions: RedocOptions = {
@@ -33,4 +34,4 @@ async function bootstrap() {
 
   await app.listen(process.env.PORT || 4310);
 }
-bootstrap();
+void bootstrap();
