@@ -33,7 +33,8 @@ docker compose --env-file apps/api/.env up -d   # PostgreSQL local
 pnpm dev                        # todos os apps via turbo (ou use --filter <app> dev)
 pnpm --filter api dev           # API com watch
 pnpm --filter api migration:run # aplica migrations (TypeORM)
-pnpm --filter api test          # jest (unit); test:e2e para e2e
+pnpm --filter api test          # jest (unit)
+pnpm --filter api test:e2e      # e2e contra Postgres real (banco <DATABASE_NAME>_test, criado no globalSetup)
 pnpm --filter api lint
 pnpm --filter web dev
 pnpm --filter mobile dev
@@ -67,7 +68,7 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `
 
 ## Estado atual
 
-Fase 0 do roadmap (README): projetos base criados; API ainda no scaffold padrão do Nest, mobile no template do Expo. Falta: conexão com Postgres, migrations e módulos (usuários, clientes, tipos de serviço, chamados). Em andamento: modelo multi-tenant e cadastro de usuários (branch `feat/cadastro-usuarios`); especificação em `docs/passos/002`.
+Fase 0 concluída (Postgres em Docker, TypeORM, migrations). Feito: modelo multi-tenant e CRUD de contas/usuários/papéis (`docs/passos/004`), ainda sem autenticação — conta ativa via `X-Tenant-Id`. Próximo: seed IBGE e Firebase Auth.
 
 ## Documentação dos passos
 

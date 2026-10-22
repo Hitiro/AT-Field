@@ -1,6 +1,6 @@
 # 002 — Modelo multi-tenant, usuários e RBAC (especificação)
 
-Status: **especificação aprovada**; schema implementado no [passo 003](003-base-typeorm-e-entidades.md), CRUD pendente.
+Status: **especificação aprovada**; schema no [passo 003](003-base-typeorm-e-entidades.md), CRUD no [passo 004](004-crud-contas-usuarios-papeis.md); autenticação pendente.
 
 ## Objetivo
 

@@ -38,8 +38,6 @@ Resultado verificado: migration aplicada (9 tabelas, incluindo `migrations`), bu
 
 ## Pendências
 
-- Seed de `permissions` e dos papéis padrão por tenant.
+(Seed de permissões, CRUD, testes de integração e formatação resolvidos no [passo 004](004-crud-contas-usuarios-papeis.md).)
+
 - Seed IBGE de `states`/`cities` (passo 004).
-- CRUD de tenants/users/memberships/roles (passo 003 continua).
-- Teste de integração do schema/migration contra um Postgres de teste.
-- Formatar a migration gerada com o Prettier do projeto.
