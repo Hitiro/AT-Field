@@ -32,6 +32,7 @@ pnpm install
 docker compose --env-file apps/api/.env up -d   # PostgreSQL local
 pnpm dev                        # todos os apps via turbo (ou use --filter <app> dev)
 pnpm --filter api dev           # API com watch
+pnpm --filter api migration:run # aplica migrations (TypeORM)
 pnpm --filter api test          # jest (unit); test:e2e para e2e
 pnpm --filter api lint
 pnpm --filter web dev
@@ -46,7 +47,7 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `
 
 - **Regra de negócio, persistência e integrações ficam só na API.** Web e Mobile são camadas de apresentação que consomem a API.
 - **TypeScript strict** em todos os pacotes.
-- **Tipos/DTOs compartilhados** em `packages/dto` (ou `packages/types`). Verifique `packages/` antes de criar estruturas novas; reutilize.
+- **Tipos/DTOs compartilhados** em `packages/dto` (compila para `dist/`; rode `pnpm --filter @at-field/dto build` se alterar, o Turborepo faz isso em `pnpm dev`). Verifique `packages/` antes de criar estruturas novas; reutilize.
 - **Validação** de payloads com **Zod** (na API via `nestjs-zod`, não `class-validator`).
 - **ORM:** TypeORM, com `synchronize: false`; schema só via migrations.
 - **Banco:** PostgreSQL (via Docker). Toda alteração estrutural via **migrations**. Tabelas do MVP: `clients`, `service_types`, `users`, `service_calls`.
