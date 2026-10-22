@@ -1,4 +1,4 @@
-name: 'CI: Bump Version & Update Jira (Develop)'
+name: 'CI: Bump Version (Develop)'
 
 on:
   pull_request:
@@ -47,30 +47,3 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a $NEW_TAG -m "Auto-bumped version to $NEW_TAG on develop merge"
           git push origin $NEW_TAG
-
-      # --- NOVOS PASSOS PARA O JIRA ---
-
-      - name: Find Jira Issue Keys in Commits
-        id: find_jira_keys
-        run: |
-          # Pega a tag anterior para limitar a busca de commits
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ steps.next_version.outputs.new_tag }}^)
-          echo "Buscando commits entre $PREVIOUS_TAG e ${{ steps.next_version.outputs.new_tag }}"
-          # Encontra todas as chaves de issue (ex: ATF-123) nos commits
-          ISSUE_KEYS=$(git log --pretty=format:%s $PREVIOUS_TAG..${{ steps.next_version.outputs.new_tag }} | grep -o -E '[A-Z]+-[0-9]+' | sort -u | tr '\n' ',' | sed 's/,$//')
-          echo "Chaves encontradas: $ISSUE_KEYS"
-          echo "keys=$ISSUE_KEYS" >> $GITHUB_OUTPUT
-
-      - name: Jira Login
-        uses: atlassian/gajira-login@v3
-        env:
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
-
-      - name: Add Comment to Jira Issues
-        if: steps.find_jira_keys.outputs.keys != ''
-        uses: atlassian/gajira-comment@v3
-        with:
-          issue: ${{ steps.find_jira_keys.outputs.keys }}
-          comment: '✅ Entregue na versão de desenvolvimento ${{ steps.next_version.outputs.new_tag }}'
