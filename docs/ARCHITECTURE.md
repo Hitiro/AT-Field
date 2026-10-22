@@ -21,12 +21,20 @@ Monorepo gerenciado via Turborepo e pnpm, contendo três aplicações principais
 - **Storage**: Mount local para arquivos técnicos (RATs).
 - **Autenticação**: Firebase Auth com validação de tokens no backend.
 
+## Multi-tenancy
+
+- Plataforma **multi-tenant** com schema único: tabelas de negócio têm `tenantId` e a API filtra por ele automaticamente.
+- Tenant = conta CPF ou CNPJ. Usuário = pessoa (CPF) com vínculo N:N com tenants (`memberships`), papel por vínculo.
+- Tenant ativo informado em `X-Tenant-Id` e validado contra o vínculo.
+- Cidades/estados vêm do IBGE (tabelas `states`/`cities`).
+- Modelo completo em `docs/passos/002-modelo-multi-tenant.md`.
+
 ## Autenticação e Autorização
 
 Camadas, implementadas nesta ordem:
 
-1. **Usuários internos (web/mobile)**: Firebase Auth. A API valida o Bearer Token em um guard. A tabela `users` guarda `firebaseUid` (único) e o papel do usuário.
-2. **RBAC**: papéis (ex.: admin, técnico, financeiro) mapeados para permissões no banco.
+1. **Usuários internos (web/mobile)**: Firebase Auth. A API valida o Bearer Token em um guard. A tabela `users` guarda `firebaseUid` (único).
+2. **RBAC**: tabelas `roles` (por tenant), `permissions` (globais) e `role_permissions`; o papel vive no `membership`.
 3. **Integradores externos (API keys)**: só quando surgir o primeiro caso real. OAuth2 próprio fica fora do escopo; se for necessário, o único fluxo previsto é `client_credentials`.
 
 Regras:

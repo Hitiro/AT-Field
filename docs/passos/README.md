@@ -15,3 +15,4 @@ Modelo:
 | # | Passo | Data |
 | --- | --- | --- |
 | 001 | [Setup do monorepo, documentação e convenções](001-setup-e-convencoes.md) | 2026-10-22 |
+| 002 | [Modelo multi-tenant, usuários e RBAC (especificação)](002-modelo-multi-tenant.md) | 2026-10-22 |

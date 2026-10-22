@@ -48,8 +48,9 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`PORT`, `DATA
 - **Validação** de payloads com **Zod** (na API via `nestjs-zod`, não `class-validator`).
 - **ORM:** TypeORM, com `synchronize: false`; schema só via migrations.
 - **Banco:** PostgreSQL (via Docker). Toda alteração estrutural via **migrations**. Tabelas do MVP: `clients`, `service_types`, `users`, `service_calls`.
+- **Multi-tenant:** tenant = conta CPF/CNPJ; usuários ligados por `memberships` (N:N) com papel por vínculo; `tenantId` em toda tabela de negócio; tenant ativo via `X-Tenant-Id`. Ver `docs/passos/002-modelo-multi-tenant.md`.
 - **Auth:** Firebase Authentication; a API valida o Bearer Token nas rotas protegidas (`users.firebaseUid` único). Push via FCM.
-- **Autorização:** RBAC com permissões `módulo:ação` via `@RequirePermissions`. API keys para integradores (só quando houver demanda): guardar **hash** (SHA-256), nunca o token. Sem OAuth2 próprio. Detalhes em `docs/ARCHITECTURE.md`.
+- **Autorização:** RBAC (`roles` por tenant, `permissions` globais) com permissões `módulo:ação` via `@RequirePermissions`. API keys para integradores (só quando houver demanda): guardar **hash** (SHA-256), nunca o token. Sem OAuth2 próprio. Detalhes em `docs/ARCHITECTURE.md`.
 - **Storage (fotos de RAT):** upload direto para a API, salvo **localmente no servidor** em **volume mapeado do Docker** (decisão atual: não usar Firebase Storage).
 - **Asaas (faturamento):** ao criar um `client`, gravar com sincronização pendente e criar no Asaas via job com retry, guardando `asaasCustomerId`; webhooks (`PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`) atualizam o status local; validar sempre o token do Asaas no header do webhook.
 
@@ -63,7 +64,7 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`PORT`, `DATA
 
 ## Estado atual
 
-Fase 0 do roadmap (README): projetos base criados; API ainda no scaffold padrão do Nest, mobile no template do Expo. Falta: conexão com Postgres, migrations e módulos (usuários, clientes, tipos de serviço, chamados). Em andamento: cadastro de usuários na API (branch `ATF-3-...`, nome legado do Jira).
+Fase 0 do roadmap (README): projetos base criados; API ainda no scaffold padrão do Nest, mobile no template do Expo. Falta: conexão com Postgres, migrations e módulos (usuários, clientes, tipos de serviço, chamados). Em andamento: modelo multi-tenant e cadastro de usuários (branch `feat/cadastro-usuarios`); especificação em `docs/passos/002`.
 
 ## Documentação dos passos
 
