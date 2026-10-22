@@ -27,3 +27,6 @@ build/
 Thumbs.db
 # Notas locais (fora do Git, ficam em D:)
 .local/
+
+# Configuração local do Claude Code
+.claude/settings.local.json
