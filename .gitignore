@@ -25,3 +25,5 @@ build/
 ### OS Files ###
 .DS_Store
 Thumbs.db
+# Notas locais (fora do Git, ficam em D:)
+.local/
