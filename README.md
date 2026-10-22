@@ -24,7 +24,7 @@ O AT-Field nasce da necessidade de digitalizar e automatizar o processo de atend
 | **Frontend (Mobile)** | ![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | App para o técnico em campo (agenda, status do chamado, RAT).                  |
 | **Backend (API)** | ![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white) | API central com toda a regra de negócio do sistema.                            |
 | **Banco de Dados** | ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) | Banco de dados relacional principal para persistência dos dados.               |
-| **Serviços de Apoio** | ![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase&logoColor=white) | Autenticação, Notificações Push e Armazenamento de Arquivos. |
+| **Serviços de Apoio** | ![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase&logoColor=white) | Autenticação e Notificações Push. Arquivos (RATs) ficam em storage local da API. |
 
 ## 🚀 Ambiente de Desenvolvimento (Plano Inicial)
 
@@ -34,7 +34,7 @@ Esta seção descreve os passos básicos para configurar e rodar o projeto local
 -   **Node.js** (v20 ou superior)
 -   **pnpm** (`npm install -g pnpm`)
 -   **Git**
--   **PostgreSQL** (Instalado e rodando diretamente na máquina)
+-   **Docker** (para o PostgreSQL via `docker compose`)
 
 ### 2. Instalação
 ```bash
@@ -48,8 +48,9 @@ pnpm install
 
 ### 3. Executando o Ambiente
 ```bash
-# 1. Certifique-se que seu serviço do PostgreSQL está ativo.
-# Lembre-se de criar o banco de dados para o projeto e configurar o arquivo .env em apps/api com suas credenciais locais.
+# 1. Copie .env.example para apps/api/.env e ajuste as credenciais.
+# Suba o PostgreSQL (container com volume persistente):
+docker compose --env-file apps/api/.env up -d
 
 # 2. Rode a API em modo de desenvolvimento (com watch)
 pnpm --filter api dev
@@ -58,7 +59,7 @@ pnpm --filter api dev
 pnpm --filter web dev
 
 # 4. Rode o App Mobile (Expo)
-pnpm --filter mobile start
+pnpm --filter mobile dev
 ```
 
 ## 🗺️ Roadmap de Desenvolvimento
@@ -93,7 +94,7 @@ pnpm --filter mobile start
 ### Fase 3: Pós-Atendimento e Faturamento
 - **Módulo 5: Relatório de Atendimento (RAT)**
     - [ ] Modelagem e endpoints para a RAT.
-    - [ ] Integração com Firebase Storage para upload de fotos.
+    - [ ] Upload de fotos na API com storage local (volume mapeado do Docker).
 - **App Mobile (React Native)**
     - [ ] Formulário para preenchimento da RAT.
 - **Módulo 6: Faturamento**
