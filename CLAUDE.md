@@ -11,6 +11,7 @@ Contexto detalhado em `docs/` (ignorado pelo Git, serve de memória para agentes
 - `docs/ARCHITECTURE.md` — padrões técnicos e infraestrutura local
 - `docs/AGENTS.md` — perfis (@architect, @business-rule, @coder, @reviewer) e fluxo de trabalho
 - `docs/skills.md` — diretrizes de Auth, Storage, Banco e Asaas
+- `docs/passos/` — registro numerado de cada passo do desenvolvimento
 
 ## Estrutura do monorepo (pnpm workspaces)
 
@@ -63,6 +64,10 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`PORT`, `DATA
 ## Estado atual
 
 Fase 0 do roadmap (README): projetos base criados; API ainda no scaffold padrão do Nest, mobile no template do Expo. Falta: conexão com Postgres, migrations e módulos (usuários, clientes, tipos de serviço, chamados). Em andamento: cadastro de usuários na API (branch `ATF-3-...`, nome legado do Jira).
+
+## Documentação dos passos
+
+A cada passo relevante (módulo, endpoint, migration, decisão), crie ou atualize `docs/passos/NNN-titulo.md` e o índice em `docs/passos/README.md` **no mesmo trabalho**, não depois. Se a decisão mudar uma regra geral, atualize também `docs/ARCHITECTURE.md` e este arquivo.
 
 ## Fluxo de trabalho esperado
 
