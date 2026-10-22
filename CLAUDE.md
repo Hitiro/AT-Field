@@ -62,7 +62,7 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`), validados por commitlint. Sem Jira/issue keys (projeto solo).
 - **Branches:** `feat/<descricao>`, `fix/<descricao>`, `docs/<descricao>`, `chore/<descricao>` a partir de `develop`; PR para `develop`. O merge em `develop` gera a tag `vX.Y.Z-develop` (`.github/workflows/bump-develop.yml`).
 - **Formatação (Prettier):** sem ponto e vírgula, aspas simples, `trailingComma: all`, `arrowParens: avoid`, 80 colunas. ESLint base airbnb + prettier.
-- **Testes:** toda feature entregue com testes unitários e de integração (jest na API).
+- **Testes (obrigatório):** todo código novo nasce com testes, no mesmo commit ou passo — unitários e, quando tocar banco/HTTP, de integração/e2e. Cobrir caminho feliz e edge cases definidos no `docs/passos`. Sem teste, o passo não está concluído. Jest na API e em `packages/dto`.
 - **Dependências novas e críticas:** justifique antes de adicionar; não altere a estrutura de pastas sem alinhar.
 
 ## Estado atual

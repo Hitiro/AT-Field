@@ -32,12 +32,14 @@ pnpm test
 pnpm build
 ```
 
+Testes: `packages/dto` (Jest) com 10 casos de CPF/CNPJ e normalização; `apps/api/src/config/env.spec.ts` com validação do `.env` (padrões, coerção de porta, variáveis ausentes, valores inválidos). Entidades/migration ainda sem teste de integração (pendência).
+
 Resultado verificado: migration aplicada (9 tabelas, incluindo `migrations`), build e teste existente passando, validadores de CPF/CNPJ conferidos com documentos válidos e inválidos.
 
 ## Pendências
 
-- Testes unitários dos validadores de CPF/CNPJ (o pacote `dto` ainda não tem runner de testes).
 - Seed de `permissions` e dos papéis padrão por tenant.
 - Seed IBGE de `states`/`cities` (passo 004).
 - CRUD de tenants/users/memberships/roles (passo 003 continua).
+- Teste de integração do schema/migration contra um Postgres de teste.
 - Formatar a migration gerada com o Prettier do projeto.
