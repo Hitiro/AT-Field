@@ -1,12 +1,12 @@
 import type { DataSourceOptions } from 'typeorm';
-import type { Env } from '../config/env.js';
-import { City } from '../geo/entities/city.entity.js';
-import { State } from '../geo/entities/state.entity.js';
-import { Membership } from '../memberships/entities/membership.entity.js';
-import { Permission } from '../roles/entities/permission.entity.js';
-import { Role } from '../roles/entities/role.entity.js';
-import { Tenant } from '../tenants/entities/tenant.entity.js';
-import { User } from '../users/entities/user.entity.js';
+import type { Env } from '../config/env';
+import { City } from '../geo/entities/city.entity';
+import { State } from '../geo/entities/state.entity';
+import { Membership } from '../memberships/entities/membership.entity';
+import { Permission } from '../roles/entities/permission.entity';
+import { Role } from '../roles/entities/role.entity';
+import { Tenant } from '../tenants/entities/tenant.entity';
+import { User } from '../users/entities/user.entity';
 
 export const entities = [
   Tenant,
@@ -27,6 +27,6 @@ export const buildDataSourceOptions = (env: Env): DataSourceOptions => ({
   database: env.DATABASE_NAME,
   entities,
   // Migrations rodam a partir do build (dist), pelo CLI do TypeORM.
-  migrations: [`${import.meta.dirname}/migrations/*.js`],
+  migrations: [`${__dirname}/migrations/*.js`],
   synchronize: false,
 });

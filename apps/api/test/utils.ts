@@ -1,9 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import type { App } from 'supertest/types.js';
+import type { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
-import { AppModule } from '../src/app.module.js';
+import { AppModule } from '../src/app.module';
 
 export async function createTestApp(): Promise<INestApplication<App>> {
   const moduleRef = await Test.createTestingModule({

@@ -8,9 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { OWNER_ROLE } from '@at-field/dto';
 import type { AddMember, UpdateMember } from '@at-field/dto';
 import { DataSource, EntityManager, Repository } from 'typeorm';
-import { Membership } from '../memberships/entities/membership.entity.js';
-import { Role } from '../roles/entities/role.entity.js';
-import { resolvePerson } from './people.js';
+import { Membership } from '../memberships/entities/membership.entity';
+import { Role } from '../roles/entities/role.entity';
+import { resolvePerson } from './people';
 
 const isOwnerRole = (role: Role) => role.isSystem && role.name === OWNER_ROLE;
 

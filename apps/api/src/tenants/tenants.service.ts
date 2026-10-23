@@ -3,11 +3,11 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { OWNER_ROLE } from '@at-field/dto';
 import type { Signup, UpdateTenant } from '@at-field/dto';
 import { DataSource, Repository } from 'typeorm';
-import { Membership } from '../memberships/entities/membership.entity.js';
-import { RolesService } from '../roles/roles.service.js';
-import { toMemberView } from '../users/members.service.js';
-import { resolvePerson } from '../users/people.js';
-import { Tenant } from './entities/tenant.entity.js';
+import { Membership } from '../memberships/entities/membership.entity';
+import { RolesService } from '../roles/roles.service';
+import { toMemberView } from '../users/members.service';
+import { resolvePerson } from '../users/people';
+import { Tenant } from './entities/tenant.entity';
 
 @Injectable()
 export class TenantsService {

@@ -5,7 +5,7 @@ import {
   PrimaryColumn,
   type Relation,
 } from 'typeorm';
-import { City } from './city.entity.js';
+import { City } from './city.entity';
 
 @Entity('states')
 export class State {

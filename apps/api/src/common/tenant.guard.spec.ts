@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { TenantGuard, TenantRequest } from './tenant.guard.js';
+import { TenantGuard, TenantRequest } from './tenant.guard';
 
 const TENANT_ID = '3f1c2b9e-8a4d-4c6e-9b7a-1d2e3f4a5b6c';
 

@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import { Client } from 'pg';
-import './setup-env.js';
+import './setup-env';
 
 // Cria o banco de teste se não existir e aplica as migrations.
 export default async function globalSetup() {

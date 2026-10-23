@@ -18,6 +18,8 @@ logs/
 
 ### Build Outputs ###
 dist/
+coverage/
+*.tsbuildinfo
 .next/
 build/
 .expo/

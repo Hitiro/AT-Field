@@ -9,8 +9,8 @@ import {
   type Relation,
 } from 'typeorm';
 import type { DocumentType } from '@at-field/dto';
-import { Membership } from '../../memberships/entities/membership.entity.js';
-import { Role } from '../../roles/entities/role.entity.js';
+import { Membership } from '../../memberships/entities/membership.entity';
+import { Role } from '../../roles/entities/role.entity';
 
 @Entity('tenants')
 export class Tenant {

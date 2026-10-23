@@ -10,8 +10,8 @@ import {
   UpdateDateColumn,
   type Relation,
 } from 'typeorm';
-import { City } from '../../geo/entities/city.entity.js';
-import { Membership } from '../../memberships/entities/membership.entity.js';
+import { City } from '../../geo/entities/city.entity';
+import { Membership } from '../../memberships/entities/membership.entity';
 
 @Entity('users')
 export class User {

@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiHeader, ApiTags } from '@nestjs/swagger';
-import { CurrentTenant } from '../common/current-tenant.decorator.js';
-import { TenantGuard } from '../common/tenant.guard.js';
-import { SignupDto, UpdateTenantDto } from './dto.js';
-import { Tenant } from './entities/tenant.entity.js';
-import { TenantsService } from './tenants.service.js';
+import { CurrentTenant } from '../common/current-tenant.decorator';
+import { TenantGuard } from '../common/tenant.guard';
+import { SignupDto, UpdateTenantDto } from './dto';
+import { Tenant } from './entities/tenant.entity';
+import { TenantsService } from './tenants.service';
 
 @ApiTags('tenants')
 @Controller('tenants')

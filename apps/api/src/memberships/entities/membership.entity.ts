@@ -10,9 +10,9 @@ import {
   type Relation,
 } from 'typeorm';
 import type { MembershipStatus } from '@at-field/dto';
-import { Role } from '../../roles/entities/role.entity.js';
-import { Tenant } from '../../tenants/entities/tenant.entity.js';
-import { User } from '../../users/entities/user.entity.js';
+import { Role } from '../../roles/entities/role.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('memberships')
 @Unique(['userId', 'tenantId'])

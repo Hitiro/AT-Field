@@ -2,8 +2,8 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { PERMISSION_KEYS } from '@at-field/dto';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import type { App } from 'supertest/types.js';
-import { createTestApp, person, resetDatabase, signup } from './utils.js';
+import type { App } from 'supertest/types';
+import { createTestApp, person, resetDatabase, signup } from './utils';
 
 type Role = {
   id: string;

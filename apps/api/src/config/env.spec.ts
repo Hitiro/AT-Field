@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateEnv } from './env.js';
+import { validateEnv } from './env';
 
 const base = {
   DATABASE_USER: 'postgres',

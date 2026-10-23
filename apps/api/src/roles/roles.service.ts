@@ -8,9 +8,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { SYSTEM_ROLES } from '@at-field/dto';
 import type { CreateRole, UpdateRole } from '@at-field/dto';
 import { EntityManager, In, Repository } from 'typeorm';
-import { Membership } from '../memberships/entities/membership.entity.js';
-import { Permission } from './entities/permission.entity.js';
-import { Role } from './entities/role.entity.js';
+import { Membership } from '../memberships/entities/membership.entity';
+import { Permission } from './entities/permission.entity';
+import { Role } from './entities/role.entity';
 
 @Injectable()
 export class RolesService {

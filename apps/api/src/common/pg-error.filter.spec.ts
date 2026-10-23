@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { ArgumentsHost, Logger } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
-import { PgErrorFilter } from './pg-error.filter.js';
+import { PgErrorFilter } from './pg-error.filter';
 
 const hostWith = () => {
   const json = vi.fn();

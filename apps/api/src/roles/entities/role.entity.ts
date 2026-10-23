@@ -11,8 +11,8 @@ import {
   UpdateDateColumn,
   type Relation,
 } from 'typeorm';
-import { Tenant } from '../../tenants/entities/tenant.entity.js';
-import { Permission } from './permission.entity.js';
+import { Tenant } from '../../tenants/entities/tenant.entity';
+import { Permission } from './permission.entity';
 
 @Entity('roles')
 @Unique(['tenantId', 'name'])
