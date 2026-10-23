@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest'
 import { OWNER_ROLE, PERMISSION_KEYS, SYSTEM_ROLES } from './permissions'
 
 describe('catálogo de permissões', () => {
