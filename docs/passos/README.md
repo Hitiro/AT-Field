@@ -18,3 +18,5 @@ Modelo:
 | 002 | [Modelo multi-tenant, usuários e RBAC (especificação)](002-modelo-multi-tenant.md) | 2026-10-22 |
 | 003 | [Base da API: TypeORM, strict e entidades](003-base-typeorm-e-entidades.md) | 2026-10-22 |
 | 004 | [CRUD de contas, usuários e papéis](004-crud-contas-usuarios-papeis.md) | 2026-10-22 |
+| 005 | [Atualização geral para as últimas versões estáveis](005-atualizacao-dependencias.md) | 2026-10-22 |
+| 006 | [Protótipo navegável do app mobile e pacote `@at-field/core`](006-prototipo-mobile.md) | 2026-10-23 |

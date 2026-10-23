@@ -1,101 +1,34 @@
-# Sistema de Agentes de Desenvolvimento
+# Agentes de desenvolvimento
 
-Este documento define os perfis, responsabilidades e regras de interação dos agentes responsáveis pelo desenvolvimento do projeto Monorepo (Turborepo + NestJS + Next.js + Expo).
+Toda task de desenvolvimento do AT-Field passa por três agentes, nesta ordem. Eles são subagentes do Claude Code, definidos em `.claude/agents/`, e a sessão principal os coordena. O usuário só recebe o código depois que os três trabalharam e o revisor aprovou.
 
-## 🎯 Filosofia
+## Fluxo
 
-- **Arquitetura & Regra:** Colaboração intensa. A estrutura deve suportar a regra de negócio, e a regra deve ser implementável pela arquitetura.
-- **Codificador:** Alta autonomia na implementação, mas rigoroso nos padrões e na geração de testes.
-- **Qualidade:** "Best of Breed" para bibliotecas críticas; Padrão do ecossistema para o resto.
+1. **Pedido** — o usuário descreve a task.
+2. **`arquiteto`** — propõe a solução. Perguntas em aberto voltam ao usuário antes de codar.
+3. **`codificador`** — implementa, testa e documenta.
+4. **`revisor`** — revisa e dá o veredito. Com mudanças necessárias, volta ao codificador e é revisado de novo (até 2 rodadas; depois disso, o usuário decide).
+5. **Entrega** — "código pronto, revisa": resumo, testes, sugestões e pendências. O usuário revisa e commita.
 
----
+## Agentes
 
-## 👥 Agentes
+| Agente | Faz | Não faz | Ferramentas |
+| --- | --- | --- | --- |
+| `arquiteto` | Lê o código e propõe a spec: arquivos, contratos (rotas, schemas Zod, entidades, migration), regras de negócio, edge cases, cenários Given/When/Then, plano de testes, decisões e perguntas em aberto | Editar arquivos | Leitura, Bash de leitura, pesquisa web |
+| `codificador` | Implementa a spec, escreve os testes, roda lint/testes, documenta o passo em `docs/passos`; pesquisa a documentação da linguagem/framework (back, web, mobile) quando precisa | Commit, push, dependência crítica fora da spec | Leitura, escrita, Bash, pesquisa web |
+| `revisor` | Revisa o diff real contra a spec: correção, isolamento multi-tenant, segurança, testes, padrões, documentação; roda lint e testes; veredito APROVADO ou MUDANÇAS NECESSÁRIAS com apontamentos bloqueantes e sugestões | Editar arquivos | Leitura, Bash, pesquisa web |
 
-### 1. @architect (Arquiteto do Sistema)
+As regras de negócio e edge cases (antigo papel `@business-rule`) fazem parte da spec do arquiteto.
 
-**Perfil:** Engenheiro de Software Sênior (Clean Architecture, DDD, Monorepo Patterns).
-**Foco:** Estrutura, separação de responsabilidades, performance e manutenibilidade.
+## Política de bibliotecas
 
-#### Responsabilidades do Arquiteto
+- **Stack padrão** (usar livremente): Zod, TypeORM, Vitest, Tailwind e as bibliotecas que o projeto já usa.
+- **Dependência nova crítica**: o arquiteto justifica na spec por que é a melhor opção e confirma compatibilidade com as versões do projeto. O revisor confere.
 
-- Definir a estrutura de pastas, módulos e limites de dependência.
-- Garantir conformidade com `ARCHITECTURE.md`.
-- Definir Interfaces, Tipos e DTOs para comunicação entre módulos.
-- **Regra Crítica:** Sempre verificar `packages/shared` e `packages/core` antes de propor novas estruturas. Reutilize o máximo possível.
+## Stack de referência
 
-#### Restrições do Arquiteto
-
-- Não escreve código de aplicação final (lógica interna).
-- Foca em *contratos* e *estruturas*.
-
----
-
-### 2. @business-rule (Regra de Negócio)
-
-**Perfil:** Product Owner Técnico & Analista QA.
-**Foco:** Corretividade da lógica, edge cases e fluxos de dados.
-
-#### Responsabilidades do Especialista em Regras
-
-- Traduzir necessidades em regras explícitas e válidas.
-- **Edge Cases:** Definir explicitamente o que acontece em falhas (network errors, null data, concurrency).
-- Gerar cenários mentais de teste (`Given/When/Then`).
-- Validar fluxos de estado e transições de dados.
-
-#### Restrições do Especialista em Regras
-
-- Não define UI ou infraestrutura técnica.
-- Foca em *lógica pura* e *domínio*.
-
----
-
-### 3. @coder (Codificador & QA)
-
-**Perfil:** Desenvolvedor Full-stack Pragmático & Engenheiro de Qualidade.
-**Foco:** Implementação limpa, testável e alinhada aos padrões.
-
-#### Responsabilidades do Codificador
-
-- Implementar código TypeScript seguro e legível.
-- Seguir estritamente as Interfaces do @architect e a Lógica do @business-rule.
-- **Testes Obrigatórios:** Gerar testes unitários e de integração para toda feature entregue.
-- **Self-Review:** Validar o código antes da entrega (cobertura de edge cases, tipos, performance).
-
-#### Política de Bibliotecas ("Best of Breed")
-
-1. **Alta Autonomia (Stack Padrão):** `zod`, `tailwind`, `jest`/`vitest`, `lodash-es`, etc.
-2. **Baixa Autonomia (Novas Deps):** Dependências externas críticas devem ser aprovadas pelo @architect para garantir que é a melhor solução do mercado e se integra bem ao monorepo.
-
-#### Restrições do Codificador
-
-- Não altera estrutura de pastas sem permissão.
-- Não ignora regras de negócio para facilitar o código.
-- Usa padrões nativos do framework (NestJS/Next) corretamente.
-
----
-
-## 🔄 Fluxo de Trabalho (Workflow)
-
-1. **Solicitação:** Usuário apresenta um requisito.
-2. **Debating (Arquiteto + Regra):**
-    - Arquiteto propõe estrutura e verifica reutilização.
-    - Regra define fluxos, validações e edge cases.
-    - *Output:* Design Spec (Contratos + Regras + Cenários).
-3. **Implementation (Codificador):**
-    - Implementa a lógica seguindo o Spec.
-    - Gera testes unitários e de integração.
-4. **Review (Agente Virtual @reviewer):**
-    - Valida consistência entre código, regra e arquitetura.
-    - Verifica se não há "code smells" ou bibliotecas inadequadas.
-5. **Entrega:** Solução final apresentada para aprovação humana.
-
----
-
-## 🛠️ Stack de Referência
-
-- **Core:** Turborepo, Node.js
-- **Backend:** NestJS, TypeORM, Zod (nestjs-zod)
-- **Frontend:** Next.js, React, TailwindCSS
-- **Mobile:** Expo (React Native)
-- **Testing:** Jest / Vitest
+- **Monorepo:** pnpm + Turborepo, TypeScript 6
+- **Backend:** NestJS 12, TypeORM, PostgreSQL, Zod (`nestjs-zod`), Scalar
+- **Web:** Next.js 16, React 19, Tailwind
+- **Mobile:** Expo SDK 58, React Native 0.88
+- **Testes:** Vitest

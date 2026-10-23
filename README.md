@@ -25,10 +25,10 @@ O AT-Field nasce da necessidade de digitalizar e automatizar o processo de atend
 | ------------------------ | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | **Frontend (Web)** | ![Next.js](https://img.shields.io/badge/Next-black?style=for-the-badge&logo=next.js)     | Painel administrativo para gestão, dashboards e relatórios.                    |
 | **Frontend (Mobile)** | ![React Native](https://img.shields.io/badge/React_Native-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) | App (Expo) para o técnico em campo (agenda, status do chamado, RAT).           |
-| **Backend (API)** | ![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white) | API central com toda a regra de negócio. TypeORM, validação com Zod (`nestjs-zod`), documentação Swagger/Redoc. |
+| **Backend (API)** | ![NestJS](https://img.shields.io/badge/nestjs-%23E0234E.svg?style=for-the-badge&logo=nestjs&logoColor=white) | API central com toda a regra de negócio. TypeORM, validação com Zod (`nestjs-zod`), documentação interativa com Scalar. |
 | **Banco de Dados** | ![Postgres](https://img.shields.io/badge/postgres-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white) | PostgreSQL em Docker; schema evolui só por migrations.                          |
 | **Serviços de Apoio** | ![Firebase](https://img.shields.io/badge/firebase-%23039BE5.svg?style=for-the-badge&logo=firebase&logoColor=white) | Autenticação e Notificações Push. Arquivos (RATs) ficam em storage local da API. |
-| **Monorepo** | pnpm workspaces + Turborepo | Apps e pacotes compartilhados (`@at-field/dto`: schemas Zod, tipos e validação de CPF/CNPJ usados pela API e pelos frontends). |
+| **Monorepo** | pnpm workspaces + Turborepo | Apps e pacotes compartilhados (`@at-field/dto`: schemas Zod, tipos e validação de CPF/CNPJ; `@at-field/core`: cálculo puro do domínio do técnico, sem dependências, usado pelo app e, em breve, pela API). |
 
 ## 📁 Estrutura
 
@@ -39,6 +39,7 @@ apps/
   mobile/   Expo / React Native (app do técnico)
 packages/
   dto/      @at-field/dto — schemas, tipos e regras compartilhadas
+  core/     @at-field/core — cálculo puro compartilhado (simulador, custo por km, parser do WhatsApp…)
   config/   presets compartilhados (ESLint)
 docs/       arquitetura, decisões e registro de cada passo (docs/passos)
 ```
@@ -47,7 +48,7 @@ docs/       arquitetura, decisões e registro de cada passo (docs/passos)
 
 ### 1. Pré-requisitos
 
--   **Node.js** 22 ou superior
+-   **Node.js** 22.12 ou superior
 -   **pnpm** (via Corepack: `corepack enable`; a versão vem do `package.json`)
 -   **Git**
 -   **Docker** (para o PostgreSQL via `docker compose`)
@@ -97,12 +98,16 @@ O projeto usa um bloco próprio (43xx) para não conflitar com outros projetos n
 ### 5. Testes
 
 ```bash
-pnpm test                       # testes unitários de todos os pacotes (Turborepo)
+pnpm test                       # testes de todos os pacotes (Vitest; jest-expo no mobile)
 pnpm --filter api test:e2e      # e2e da API (usa o banco <DATABASE_NAME>_test, criado automaticamente)
-pnpm --filter api lint
+pnpm lint                       # checagem de tipos + ESLint em todos os pacotes
 ```
 
 Todo código novo é entregue com testes.
+
+## 📱 App do técnico (protótipo)
+
+O app mobile já é um **protótipo navegável** com dados de exemplo em memória (sem login nem API): agenda, resumo do mês, lançamento rápido "a revisar", colar mensagem do WhatsApp, financeiro, simulador "compensa ou não compensa", custo do veículo e reputação das empresas. Rode `pnpm --filter mobile dev` e abra no Expo Go ou no navegador. Detalhes em `docs/passos/006-prototipo-mobile.md`.
 
 ## 🔌 API (até agora)
 
@@ -118,7 +123,7 @@ Rotas de conta usam o header **`X-Tenant-Id`** para indicar a conta ativa. A aut
 | `GET` / `PATCH` / `DELETE` | `/roles/:id` | Ver, editar, excluir papel |
 | `GET` | `/permissions` | Catálogo de permissões |
 
-Documentação interativa em `http://localhost:4310/api`.
+Documentação interativa (Scalar, com exemplos em cURL, fetch, PowerShell etc.) em `http://localhost:4310/api`; OpenAPI em `http://localhost:4310/api-json`.
 
 ## 🗺️ Roadmap de Desenvolvimento
 

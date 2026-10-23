@@ -4,9 +4,14 @@
 
 Monorepo gerenciado via Turborepo e pnpm, contendo três aplicações principais:
 
-- `apps/api`: NestJS (Backend)
+- `apps/api`: NestJS 12 (Backend), compilado para CommonJS
 - `apps/web`: Next.js (Frontend Web)
 - `apps/mobile`: Expo (Frontend Mobile)
+
+Pacotes compartilhados:
+
+- `packages/dto` (`@at-field/dto`): contratos — schemas Zod, tipos, validação de CPF/CNPJ.
+- `packages/core` (`@at-field/core`): cálculo puro do domínio do técnico (simulador, custo por km, cobrança, agenda, resumo/financeiro, reputação, parser do WhatsApp). Sem dependências, sem I/O, sem relógio (datas entram por parâmetro); dinheiro em centavos inteiros.
 
 ## Padrões Técnicos
 
@@ -14,6 +19,7 @@ Monorepo gerenciado via Turborepo e pnpm, contendo três aplicações principais
 2. **Shared Types**: Tipagens comuns devem residir em `packages/dto` ou `packages/types`.
 3. **Validação**: Zod para validação de payloads. Na API, via `nestjs-zod` (DTOs a partir de schemas Zod, integrado ao Swagger) em vez de `class-validator`.
 4. **ORM**: TypeORM (PostgreSQL). Schema evolui apenas via migrations (`synchronize: false`).
+5. **Regra D1 (passo 006)**: cálculo puro compartilhado fica em `@at-field/core`; persistência e decisão oficial ficam na API. Web e mobile podem usar o `core` para mostrar números na hora; a API recalcula com o mesmo código ao gravar. O `dto` continua só contrato.
 
 ## Infraestrutura Local
 
