@@ -1,8 +1,8 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import type { Person } from '@at-field/dto';
 import { EntityManager } from 'typeorm';
-import { City } from '../geo/entities/city.entity';
-import { User } from './entities/user.entity';
+import { City } from '../geo/entities/city.entity.js';
+import { User } from './entities/user.entity.js';
 
 // Encontra a pessoa pelo CPF ou cria uma nova. Uma pessoa existe uma única
 // vez no sistema, mesmo atuando em vários tenants.

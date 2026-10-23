@@ -8,9 +8,10 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  type Relation,
 } from 'typeorm';
-import { City } from '../../geo/entities/city.entity';
-import { Membership } from '../../memberships/entities/membership.entity';
+import { City } from '../../geo/entities/city.entity.js';
+import { Membership } from '../../memberships/entities/membership.entity.js';
 
 @Entity('users')
 export class User {
@@ -37,13 +38,13 @@ export class User {
 
   @ManyToOne(() => City, { nullable: true })
   @JoinColumn({ name: 'cityId' })
-  city!: City | null;
+  city!: Relation<City> | null;
 
   @Column({ type: 'boolean', default: true })
   isActive!: boolean;
 
   @OneToMany(() => Membership, (membership) => membership.user)
-  memberships!: Membership[];
+  memberships!: Relation<Membership[]>;
 
   @CreateDateColumn()
   createdAt!: Date;

@@ -7,7 +7,7 @@ import {
 import type { Request } from 'express';
 import { DataSource } from 'typeorm';
 import { z } from 'zod';
-import { Tenant } from '../tenants/entities/tenant.entity';
+import { Tenant } from '../tenants/entities/tenant.entity.js';
 
 export const TENANT_HEADER = 'x-tenant-id';
 

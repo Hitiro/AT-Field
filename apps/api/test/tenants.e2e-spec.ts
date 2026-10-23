@@ -1,6 +1,7 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
+import type { App } from 'supertest/types.js';
 import { DataSource } from 'typeorm';
 import {
   createTestApp,
@@ -9,7 +10,7 @@ import {
   person,
   resetDatabase,
   signup,
-} from './utils';
+} from './utils.js';
 
 describe('Tenants (e2e)', () => {
   let app: INestApplication<App>;

@@ -9,9 +9,10 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
+  type Relation,
 } from 'typeorm';
-import { Tenant } from '../../tenants/entities/tenant.entity';
-import { Permission } from './permission.entity';
+import { Tenant } from '../../tenants/entities/tenant.entity.js';
+import { Permission } from './permission.entity.js';
 
 @Entity('roles')
 @Unique(['tenantId', 'name'])
@@ -24,7 +25,7 @@ export class Role {
 
   @ManyToOne(() => Tenant, (tenant) => tenant.roles, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'tenantId' })
-  tenant!: Tenant;
+  tenant!: Relation<Tenant>;
 
   @Column({ type: 'varchar', length: 60 })
   name!: string;
@@ -38,7 +39,7 @@ export class Role {
     joinColumn: { name: 'roleId', referencedColumnName: 'id' },
     inverseJoinColumn: { name: 'permissionId', referencedColumnName: 'id' },
   })
-  permissions!: Permission[];
+  permissions!: Relation<Permission[]>;
 
   @CreateDateColumn()
   createdAt!: Date;

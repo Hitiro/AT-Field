@@ -3,14 +3,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ZodValidationPipe } from 'nestjs-zod';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { PgErrorFilter } from './common/pg-error.filter';
-import { Env, validateEnv } from './config/env';
-import { buildDataSourceOptions } from './database/typeorm.config';
-import { RolesModule } from './roles/roles.module';
-import { TenantsModule } from './tenants/tenants.module';
-import { UsersModule } from './users/users.module';
+import { AppController } from './app.controller.js';
+import { AppService } from './app.service.js';
+import { PgErrorFilter } from './common/pg-error.filter.js';
+import { Env, validateEnv } from './config/env.js';
+import { buildDataSourceOptions } from './database/typeorm.config.js';
+import { RolesModule } from './roles/roles.module.js';
+import { TenantsModule } from './tenants/tenants.module.js';
+import { UsersModule } from './users/users.module.js';
 
 @Module({
   imports: [

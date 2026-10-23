@@ -1,11 +1,12 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { TenantGuard, TenantRequest } from './tenant.guard';
+import { TenantGuard, TenantRequest } from './tenant.guard.js';
 
 const TENANT_ID = '3f1c2b9e-8a4d-4c6e-9b7a-1d2e3f4a5b6c';
 
 const setup = (tenant: unknown) => {
-  const findOneBy = jest.fn().mockResolvedValue(tenant);
+  const findOneBy = vi.fn().mockResolvedValue(tenant);
   const dataSource = {
     getRepository: () => ({ findOneBy }),
   } as unknown as DataSource;
@@ -23,7 +24,8 @@ const contextFor = (headers: Record<string, string | string[]>) => {
 describe('TenantGuard', () => {
   it('rejeita header ausente ou que não é uuid sem consultar o banco', async () => {
     const { guard, findOneBy } = setup(undefined);
-    for (const headers of [{}, { 'x-tenant-id': 'abc' }]) {
+    const cases: Record<string, string>[] = [{}, { 'x-tenant-id': 'abc' }];
+    for (const headers of cases) {
       await expect(
         guard.canActivate(contextFor(headers).context),
       ).rejects.toBeInstanceOf(ForbiddenException);

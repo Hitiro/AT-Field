@@ -1,5 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
-import { City } from './city.entity';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryColumn,
+  type Relation,
+} from 'typeorm';
+import { City } from './city.entity.js';
 
 @Entity('states')
 export class State {
@@ -14,5 +20,5 @@ export class State {
   name!: string;
 
   @OneToMany(() => City, (city) => city.state)
-  cities!: City[];
+  cities!: Relation<City[]>;
 }

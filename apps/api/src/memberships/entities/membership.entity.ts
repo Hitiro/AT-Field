@@ -7,11 +7,12 @@ import {
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
+  type Relation,
 } from 'typeorm';
 import type { MembershipStatus } from '@at-field/dto';
-import { Role } from '../../roles/entities/role.entity';
-import { Tenant } from '../../tenants/entities/tenant.entity';
-import { User } from '../../users/entities/user.entity';
+import { Role } from '../../roles/entities/role.entity.js';
+import { Tenant } from '../../tenants/entities/tenant.entity.js';
+import { User } from '../../users/entities/user.entity.js';
 
 @Entity('memberships')
 @Unique(['userId', 'tenantId'])
@@ -24,7 +25,7 @@ export class Membership {
 
   @ManyToOne(() => User, (user) => user.memberships, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'userId' })
-  user!: User;
+  user!: Relation<User>;
 
   @Column({ type: 'uuid' })
   tenantId!: string;
@@ -33,14 +34,14 @@ export class Membership {
     onDelete: 'CASCADE',
   })
   @JoinColumn({ name: 'tenantId' })
-  tenant!: Tenant;
+  tenant!: Relation<Tenant>;
 
   @Column({ type: 'uuid' })
   roleId!: string;
 
   @ManyToOne(() => Role, { onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'roleId' })
-  role!: Role;
+  role!: Relation<Role>;
 
   @Column({
     type: 'enum',

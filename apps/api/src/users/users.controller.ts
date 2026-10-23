@@ -11,11 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiHeader, ApiTags } from '@nestjs/swagger';
-import { CurrentTenant } from '../common/current-tenant.decorator';
-import { TenantGuard } from '../common/tenant.guard';
-import { Tenant } from '../tenants/entities/tenant.entity';
-import { AddMemberDto, UpdateMemberDto } from './dto';
-import { MembersService } from './members.service';
+import { CurrentTenant } from '../common/current-tenant.decorator.js';
+import { TenantGuard } from '../common/tenant.guard.js';
+import { Tenant } from '../tenants/entities/tenant.entity.js';
+import { AddMemberDto, UpdateMemberDto } from './dto.js';
+import { MembersService } from './members.service.js';
 
 @ApiTags('users')
 @ApiHeader({ name: 'X-Tenant-Id', required: true })

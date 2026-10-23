@@ -1,10 +1,11 @@
+import { describe, expect, it, vi } from 'vitest';
 import { ArgumentsHost, Logger } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
-import { PgErrorFilter } from './pg-error.filter';
+import { PgErrorFilter } from './pg-error.filter.js';
 
 const hostWith = () => {
-  const json = jest.fn();
-  const status = jest.fn().mockReturnValue({ json });
+  const json = vi.fn();
+  const status = vi.fn().mockReturnValue({ json });
   const host = {
     switchToHttp: () => ({ getResponse: () => ({ status }) }),
   } as unknown as ArgumentsHost;
@@ -35,7 +36,9 @@ describe('PgErrorFilter', () => {
   });
 
   it('responde 500 e registra erros desconhecidos', () => {
-    const log = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+    const log = vi
+      .spyOn(Logger.prototype, 'error')
+      .mockImplementation(() => undefined);
     const { host, status } = hostWith();
     filter.catch(pgError('XX000'), host);
     expect(status).toHaveBeenCalledWith(500);

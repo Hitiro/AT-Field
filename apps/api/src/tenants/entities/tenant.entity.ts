@@ -6,10 +6,11 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  type Relation,
 } from 'typeorm';
 import type { DocumentType } from '@at-field/dto';
-import { Membership } from '../../memberships/entities/membership.entity';
-import { Role } from '../../roles/entities/role.entity';
+import { Membership } from '../../memberships/entities/membership.entity.js';
+import { Role } from '../../roles/entities/role.entity.js';
 
 @Entity('tenants')
 export class Tenant {
@@ -29,10 +30,10 @@ export class Tenant {
   isActive!: boolean;
 
   @OneToMany(() => Membership, (membership) => membership.tenant)
-  memberships!: Membership[];
+  memberships!: Relation<Membership[]>;
 
   @OneToMany(() => Role, (role) => role.tenant)
-  roles!: Role[];
+  roles!: Relation<Role[]>;
 
   @CreateDateColumn()
   createdAt!: Date;

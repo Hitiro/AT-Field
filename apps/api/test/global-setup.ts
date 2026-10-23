@@ -1,6 +1,6 @@
 import { execSync } from 'node:child_process';
 import { Client } from 'pg';
-import './setup-env';
+import './setup-env.js';
 
 // Cria o banco de teste se não existir e aplica as migrations.
 export default async function globalSetup() {
@@ -21,7 +21,7 @@ export default async function globalSetup() {
   if (!rowCount) await client.query(`CREATE DATABASE "${database}"`);
   await client.end();
 
-  execSync('pnpm typeorm migration:run', {
+  execSync('pnpm migration:run', {
     env: process.env,
     stdio: 'ignore',
   });

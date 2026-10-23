@@ -1,7 +1,7 @@
 import { existsSync } from 'node:fs';
 import { DataSource } from 'typeorm';
-import { validateEnv } from '../config/env';
-import { buildDataSourceOptions } from './typeorm.config';
+import { validateEnv } from '../config/env.js';
+import { buildDataSourceOptions } from './typeorm.config.js';
 
 // Usado apenas pelo CLI do TypeORM (migrations). Execute a partir de apps/api.
 if (existsSync('.env')) process.loadEnvFile('.env');

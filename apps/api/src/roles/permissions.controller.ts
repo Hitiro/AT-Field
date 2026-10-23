@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { RolesService } from './roles.service';
+import { RolesService } from './roles.service.js';
 
 @ApiTags('roles')
 @Controller('permissions')

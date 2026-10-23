@@ -5,8 +5,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
+  type Relation,
 } from 'typeorm';
-import { State } from './state.entity';
+import { State } from './state.entity.js';
 
 @Entity('cities')
 export class City {
@@ -19,7 +20,7 @@ export class City {
 
   @ManyToOne(() => State, (state) => state.cities)
   @JoinColumn({ name: 'stateId' })
-  state!: State;
+  state!: Relation<State>;
 
   @Index()
   @Column({ type: 'varchar', length: 120 })

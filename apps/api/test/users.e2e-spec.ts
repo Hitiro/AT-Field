@@ -1,13 +1,14 @@
+import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
+import type { App } from 'supertest/types.js';
 import {
   createTestApp,
   person,
   resetDatabase,
   seedCity,
   signup,
-} from './utils';
+} from './utils.js';
 
 type Role = { id: string; name: string };
 type Member = {

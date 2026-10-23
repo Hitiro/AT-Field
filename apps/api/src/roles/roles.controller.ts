@@ -11,11 +11,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiHeader, ApiTags } from '@nestjs/swagger';
-import { CurrentTenant } from '../common/current-tenant.decorator';
-import { TenantGuard } from '../common/tenant.guard';
-import { Tenant } from '../tenants/entities/tenant.entity';
-import { CreateRoleDto, UpdateRoleDto } from './dto';
-import { RolesService } from './roles.service';
+import { CurrentTenant } from '../common/current-tenant.decorator.js';
+import { TenantGuard } from '../common/tenant.guard.js';
+import { Tenant } from '../tenants/entities/tenant.entity.js';
+import { CreateRoleDto, UpdateRoleDto } from './dto.js';
+import { RolesService } from './roles.service.js';
 
 @ApiTags('roles')
 @ApiHeader({ name: 'X-Tenant-Id', required: true })
