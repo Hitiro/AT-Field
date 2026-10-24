@@ -3,3 +3,9 @@ packages:
   - packages/*
 
 nodeLinker: hoisted
+
+onlyBuiltDependencies:
+  - "@nestjs/core"
+  - "@tailwindcss/oxide"
+  - sharp
+  - unrs-resolver
