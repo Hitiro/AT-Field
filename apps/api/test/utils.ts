@@ -14,25 +14,18 @@ export async function createTestApp(): Promise<INestApplication<App>> {
   return app;
 }
 
-// Limpa os dados entre testes; mantém o catálogo de permissões.
+// Limpa os dados entre testes; mantém o catálogo de permissões e a base IBGE
+// (states/cities), carregada pela migration no globalSetup.
 export async function resetDatabase(app: INestApplication) {
   await app
     .get(DataSource)
     .query(
-      'TRUNCATE memberships, role_permissions, roles, users, tenants, cities, states RESTART IDENTITY CASCADE',
+      'TRUNCATE memberships, role_permissions, roles, users, tenants RESTART IDENTITY CASCADE',
     );
 }
 
-export async function seedCity(app: INestApplication) {
-  const dataSource = app.get(DataSource);
-  await dataSource.query(
-    `INSERT INTO states (id, uf, name) VALUES (35, 'SP', 'São Paulo')`,
-  );
-  await dataSource.query(
-    `INSERT INTO cities (id, "stateId", name) VALUES (3550308, 35, 'São Paulo')`,
-  );
-  return 3550308;
-}
+// Cidade real da base IBGE (Toledo/PR), presente após as migrations.
+export const CITY_TOLEDO_PR = 4127700;
 
 const checkDigit = (digits: number[], firstWeight: number, cycle?: number) => {
   const sum = digits.reduce((acc, digit, index) => {

@@ -3,10 +3,10 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 import {
+  CITY_TOLEDO_PR,
   createTestApp,
   person,
   resetDatabase,
-  seedCity,
   signup,
 } from './utils';
 
@@ -67,13 +67,25 @@ describe('Users (e2e)', () => {
     ]);
   });
 
-  it('aceita cidade existente', async () => {
-    const cityId = await seedCity(app);
+  it('aceita cidade existente da base IBGE', async () => {
     const added = await asTenant()
       .post('/users')
-      .send({ ...person(2), cityId, roleId: roles.technician })
+      .send({ ...person(2), cityId: CITY_TOLEDO_PR, roleId: roles.technician })
       .expect(201);
-    expect((added.body as Member).cityId).toBe(cityId);
+    expect((added.body as Member).cityId).toBe(CITY_TOLEDO_PR);
+  });
+
+  it('rejeita cidade inexistente ou com formato inválido', async () => {
+    await asTenant()
+      .post('/users')
+      .send({ ...person(2), cityId: 9999999, roleId: roles.technician })
+      .expect(400);
+    for (const cityId of [0, -1, 1.5, '4127700']) {
+      await asTenant()
+        .post('/users')
+        .send({ ...person(2), cityId, roleId: roles.technician })
+        .expect(400);
+    }
   });
 
   it('vincula pessoa que já atua em outra conta sem duplicar', async () => {

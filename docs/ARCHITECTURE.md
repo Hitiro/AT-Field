@@ -32,7 +32,7 @@ Pacotes compartilhados:
 - Plataforma **multi-tenant** com schema único: tabelas de negócio têm `tenantId` e a API filtra por ele automaticamente.
 - Tenant = conta CPF ou CNPJ. Usuário = pessoa (CPF) com vínculo N:N com tenants (`memberships`), papel por vínculo.
 - Tenant ativo informado em `X-Tenant-Id` e validado contra o vínculo.
-- Cidades/estados vêm do IBGE (tabelas `states`/`cities`).
+- Cidades/estados vêm do IBGE (tabelas `states`/`cities`): base de **referência global, sem `tenantId`**, só leitura e com rotas públicas. Versionada em arquivo (`apps/api/src/geo/ibge/data/localidades-AAAA-MM.json`, gerado por `pnpm --filter api geo:snapshot`) e carregada por **migration** com upsert, nunca apagando município. Busca pela coluna normalizada `searchName` (normalização própria da API, sem depender do `@at-field/core`). Ver `docs/passos/007-base-ibge-estados-cidades.md` e COM-05.
 - Modelo completo em `docs/passos/002-modelo-multi-tenant.md`.
 
 ## Autenticação e Autorização
@@ -47,6 +47,16 @@ Regras:
 
 - **Permissões** no formato `módulo:ação` (ex.: `clients:read`, `service_calls:write`), exigidas por decorator (`@RequirePermissions(...)`). O mesmo guard atende usuários e API keys; a origem da credencial é detalhe.
 - **API keys**: token aleatório e longo, exibido uma única vez, com prefixo visível (ex.: `atf_live_ab12...`). No banco fica apenas o **hash** (SHA-256), nunca o token nem uma versão criptografada. Campos: dono, escopos, `lastUsedAt`, `expiresAt`, `revokedAt`.
+
+## Erros e logs (decidido em 2026-10-24; implementação no passo 008)
+
+Objetivo: todo erro visto pelo usuário leva direto ao ponto do código e ao log da requisição. Um 500 com só "Internal server error" não serve para depurar.
+
+- **Código de erro estável** por situação (ex.: `GEO-001`, `USR-003`), num catálogo único em `packages/dto` com significado de cada código. Toda exceção lançada pela API usa um código do catálogo; buscar o código no repositório leva ao `throw`.
+- **`requestId`** por requisição: gerado por middleware (ou reaproveitado do header `X-Request-Id`), devolvido no header da resposta e presente em todas as linhas de log da requisição. Erro inesperado (500) não tem código de negócio, mas sempre tem `requestId` e o stack completo no log.
+- **Formato único de erro** na resposta: `{ code, message, requestId }` (mais `details` em erros de validação). Web e mobile exibem algo como "Erro USR-003 (ref. a1b2c3)".
+- **Log estruturado em JSON** (open source, ex.: `pino` ou Logger do Nest), filtrável por `requestId`, `code`, `tenantId` e usuário; trocar o destino (arquivo, ferramenta de logs) sem reescrever código. Nunca logar senha, token ou dado sensível.
+- Vem antes do Firebase Auth para que os erros de autenticação e permissão já nasçam com código.
 
 ## Integrações
 

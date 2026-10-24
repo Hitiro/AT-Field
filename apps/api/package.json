@@ -23,7 +23,8 @@
     "migration:generate": "nest build && pnpm typeorm migration:generate",
     "migration:run": "nest build && pnpm typeorm migration:run",
     "migration:revert": "nest build && pnpm typeorm migration:revert",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "geo:snapshot": "node scripts/gerar-localidades-ibge.mjs"
   },
   "dependencies": {
     "@at-field/dto": "workspace:*",

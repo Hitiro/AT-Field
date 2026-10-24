@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { PgErrorFilter } from './common/pg-error.filter';
 import { Env, validateEnv } from './config/env';
 import { buildDataSourceOptions } from './database/typeorm.config';
+import { GeoModule } from './geo/geo.module';
 import { RolesModule } from './roles/roles.module';
 import { TenantsModule } from './tenants/tenants.module';
 import { UsersModule } from './users/users.module';
@@ -28,6 +29,7 @@ import { UsersModule } from './users/users.module';
           DATABASE_NAME: config.get('DATABASE_NAME'),
         }),
     }),
+    GeoModule,
     RolesModule,
     TenantsModule,
     UsersModule,
