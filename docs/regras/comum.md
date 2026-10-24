@@ -14,3 +14,7 @@
 ## Chamado
 
 - **COM-04** — O ciclo de vida do chamado é **configurável**, não fixo: cada tipo de atendimento (empresa contratante, cliente PF local, remoto…) pode ter etapas próprias.
+
+## Estados e cidades
+
+- **COM-05** — Estados e cidades vêm do **IBGE** e são identificados pelo **código IBGE** (UF com 2 dígitos, município com 7). É uma base de referência **global, sem conta**, com **leitura pública**. A busca por nome **ignora acento e caixa**. Cidades homônimas (ex.: Toledo/PR e Toledo/MG) aparecem sempre **com a UF** e **nunca são escolhidas sozinhas**: quem informa decide. A base só muda por **novo retrato do IBGE com migration**, e **nenhum município é apagado**. Implementado no [passo 007](../passos/007-base-ibge-estados-cidades.md).

@@ -40,4 +40,4 @@ Resultado verificado: migration aplicada (9 tabelas, incluindo `migrations`), bu
 
 (Seed de permissões, CRUD, testes de integração e formatação resolvidos no [passo 004](004-crud-contas-usuarios-papeis.md).)
 
-- Seed IBGE de `states`/`cities` (passo 004).
+- ~~Seed IBGE de `states`/`cities`~~ — resolvido no [passo 007](007-base-ibge-estados-cidades.md).

@@ -139,7 +139,7 @@ Documentação interativa (Scalar, com exemplos em cURL, fetch, PowerShell etc.)
 - **Módulo 1: Cadastros Essenciais (Backend)**
     - [X] Modelo multi-tenant: contas, usuários, vínculos, papéis e permissões.
     - [X] CRUD de contas, usuários e papéis.
-    - [ ] Estados e cidades (base do IBGE).
+    - [X] Estados e cidades (base do IBGE).
     - [ ] Configuração do Firebase Authentication para login de usuários.
     - [ ] Modelagem e `migrations` das tabelas: `clients`, `service_types`.
     - [ ] Criação dos endpoints CRUD na API NestJS para Clientes e Tipos de Serviço.

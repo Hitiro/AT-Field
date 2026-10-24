@@ -105,6 +105,6 @@ pnpm --filter mobile dev                 # Expo Go ou web; conferir claro/escuro
 - Persistência, login e API dos lançamentos; a API passa a usar o `@at-field/core`.
 - Reembolso de despesa pela empresa (TEC-46c) fica para o próximo passo.
 - Seletor de data, múltiplas esperas por serviço, relatório "quanto perco esperando", item de material no serviço.
-- Rota/pedágio por API (TEC-40/49) e base de cidades do IBGE no lugar do mock.
+- Rota/pedágio por API (TEC-40/49) e base de cidades do IBGE no lugar do mock (a API já tem a base e o pacote offline `GET /cities/all` desde o [passo 007](007-base-ibge-estados-cidades.md); falta o app consumir).
 - Versão horizontal do logo (ainda não existe no kit).
 - `tempoDoAtendimento.ganhoPorHoraCentavos` ("ganho por hora no local") divide o total do serviço, que inclui o valor do deslocamento, só pelo tempo no local, sem contar tempo nem custo de estrada. Decidir depois se o deslocamento sai do numerador ou se a estrada entra no tempo (o ganho/h completo da viagem é o do simulador, TEC-48).

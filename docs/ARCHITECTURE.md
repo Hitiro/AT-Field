@@ -32,7 +32,7 @@ Pacotes compartilhados:
 - Plataforma **multi-tenant** com schema único: tabelas de negócio têm `tenantId` e a API filtra por ele automaticamente.
 - Tenant = conta CPF ou CNPJ. Usuário = pessoa (CPF) com vínculo N:N com tenants (`memberships`), papel por vínculo.
 - Tenant ativo informado em `X-Tenant-Id` e validado contra o vínculo.
-- Cidades/estados vêm do IBGE (tabelas `states`/`cities`).
+- Cidades/estados vêm do IBGE (tabelas `states`/`cities`): base de **referência global, sem `tenantId`**, só leitura e com rotas públicas. Versionada em arquivo (`apps/api/src/geo/ibge/data/localidades-AAAA-MM.json`, gerado por `pnpm --filter api geo:snapshot`) e carregada por **migration** com upsert, nunca apagando município. Busca pela coluna normalizada `searchName` (normalização própria da API, sem depender do `@at-field/core`). Ver `docs/passos/007-base-ibge-estados-cidades.md` e COM-05.
 - Modelo completo em `docs/passos/002-modelo-multi-tenant.md`.
 
 ## Autenticação e Autorização

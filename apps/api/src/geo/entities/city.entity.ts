@@ -15,6 +15,7 @@ export class City {
   @PrimaryColumn({ type: 'int' })
   id!: number;
 
+  @Index()
   @Column({ type: 'int' })
   stateId!: number;
 
@@ -25,4 +26,9 @@ export class City {
   @Index()
   @Column({ type: 'varchar', length: 120 })
   name!: string;
+
+  // Nome normalizado para a busca (ver normalize-name.ts). Preenchido pelo
+  // seed do IBGE; fica fora das respostas.
+  @Column({ type: 'varchar', length: 120, select: false })
+  searchName!: string;
 }

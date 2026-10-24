@@ -58,7 +58,7 @@ Definir como contas (CPF/CNPJ), usuários, vínculos, papéis e permissões se r
 ## Plano de passos
 
 - 003: entidades, migrations e CRUD de tenants/users/memberships/roles (sem Firebase; `firebaseUid` nulo).
-- 004: `states` e `cities` com seed do IBGE.
+- 004: `states` e `cities` com seed do IBGE. (Feito no [passo 007](007-base-ibge-estados-cidades.md).)
 - 005: Firebase Auth (guard, criação do usuário no Firebase) e `X-Tenant-Id`.
 - Antes de tudo: ligar `strict` no tsconfig da API, instalar TypeORM/`nestjs-zod`/`pg`, remover `LoginDTO` (username/password) de `packages/dto`.
 

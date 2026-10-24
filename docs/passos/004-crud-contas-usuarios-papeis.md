@@ -61,5 +61,5 @@ pnpm --filter api lint
 
 - Autenticação Firebase, checagem de vínculo do usuário e `@RequirePermissions` (hoje qualquer cliente com o `X-Tenant-Id` opera a conta — **não expor em produção**).
 - Regra do último owner sob concorrência (duas requisições simultâneas) — usar lock (`SELECT ... FOR UPDATE`).
-- Seed IBGE de estados/cidades.
+- ~~Seed IBGE de estados/cidades~~ — resolvido no [passo 007](007-base-ibge-estados-cidades.md).
 - Fluxo de convite e aceite do vínculo.

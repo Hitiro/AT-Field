@@ -4,6 +4,7 @@ import request from 'supertest';
 import type { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import {
+  CITY_TOLEDO_PR,
   createTestApp,
   makeCnpj,
   makeCpf,
@@ -138,6 +139,15 @@ describe('Tenants (e2e)', () => {
           owner: { ...person(2), email: 'pessoa1@teste.com' },
         })
         .expect(409);
+    });
+
+    it('grava a cidade da base IBGE no owner', async () => {
+      const owner = { ...person(1), cityId: CITY_TOLEDO_PR };
+      const body = await signup(app, 1, owner);
+      const rows = await app
+        .get(DataSource)
+        .query('SELECT "cityId" FROM users WHERE id = $1', [body.owner.id]);
+      expect(rows[0].cityId).toBe(CITY_TOLEDO_PR);
     });
 
     it('cidade inexistente retorna 400', async () => {

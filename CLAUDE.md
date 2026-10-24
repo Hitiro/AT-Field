@@ -35,6 +35,7 @@ docker compose --env-file apps/api/.env up -d   # PostgreSQL local
 pnpm dev                        # todos os apps via turbo (ou use --filter <app> dev)
 pnpm --filter api dev           # API com watch
 pnpm --filter api migration:run # aplica migrations (TypeORM)
+pnpm --filter api geo:snapshot  # regera o retrato do IBGE (só ao atualizar a base; ver docs/passos/007)
 pnpm --filter api test          # vitest (unit)
 pnpm --filter api test:e2e      # vitest e2e contra Postgres real (banco <DATABASE_NAME>_test, criado no globalSetup)
 pnpm lint                       # tsc --noEmit + eslint em todos os pacotes
@@ -55,7 +56,7 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `
 - **Tipos/DTOs compartilhados** em `packages/dto` (compila para `dist/`; rode `pnpm --filter @at-field/dto build` se alterar, o Turborepo faz isso em `pnpm dev`). Verifique `packages/` antes de criar estruturas novas; reutilize.
 - **Validação** de payloads com **Zod** (na API via `nestjs-zod`, não `class-validator`).
 - **ORM:** TypeORM, com `synchronize: false`; schema só via migrations.
-- **Banco:** PostgreSQL (via Docker). Toda alteração estrutural via **migrations**. Tabelas do MVP: `clients`, `service_types`, `users`, `service_calls`.
+- **Banco:** PostgreSQL (via Docker). Toda alteração estrutural via **migrations**. Tabelas do MVP: `clients`, `service_types`, `users`, `service_calls`. `states`/`cities` (IBGE) são referência global sem `tenantId`, carregadas por migration a partir de um retrato versionado (passo 007).
 - **Multi-tenant:** tenant = conta CPF/CNPJ; usuários ligados por `memberships` (N:N) com papel por vínculo; `tenantId` em toda tabela de negócio; tenant ativo via `X-Tenant-Id`. Ver `docs/passos/002-modelo-multi-tenant.md`.
 - **Auth:** Firebase Authentication; a API valida o Bearer Token nas rotas protegidas (`users.firebaseUid` único). Push via FCM.
 - **Autorização:** RBAC (`roles` por tenant, `permissions` globais) com permissões `módulo:ação` via `@RequirePermissions`. API keys para integradores (só quando houver demanda): guardar **hash** (SHA-256), nunca o token. Sem OAuth2 próprio. Detalhes em `docs/ARCHITECTURE.md`.
@@ -66,13 +67,13 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `
 
 - **Commits:** Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`), validados por commitlint. Sem Jira/issue keys (projeto solo).
 - **Branches:** `feat/<descricao>`, `fix/<descricao>`, `docs/<descricao>`, `chore/<descricao>` a partir de `develop`; PR para `develop`. O merge em `develop` gera a tag `vX.Y.Z-develop` (`.github/workflows/bump-develop.yml`).
-- **Formatação (Prettier):** sem ponto e vírgula, aspas simples, `trailingComma: all`, `arrowParens: avoid`, 80 colunas. ESLint base airbnb + prettier. Fim de linha **LF** em todo o repo, garantido pelo `.gitattributes` (`* text=auto eol=lf`), mesmo com `core.autocrlf=true` no Windows.
+- **Formatação (Prettier):** sem ponto e vírgula, aspas simples, `trailingComma: all`, `arrowParens: avoid`, 80 colunas. ESLint base airbnb + prettier. Fim de linha **LF** em todo o repo, garantido pelo `.gitattributes` (`* text=auto eol=lf`), mesmo com `core.autocrlf=true` no Windows (passo 007).
 - **Testes (obrigatório):** todo código novo nasce com testes, no mesmo commit ou passo — unitários e, quando tocar banco/HTTP, de integração/e2e. Cobrir caminho feliz e edge cases definidos no `docs/passos`. Sem teste, o passo não está concluído. Vitest na API, em `packages/dto` e em `packages/core`; no mobile, `jest-expo` + `@testing-library/react-native` (testes em `src/__tests__`).
 - **Dependências novas e críticas:** justifique antes de adicionar; não altere a estrutura de pastas sem alinhar.
 
 ## Estado atual
 
-Fase 0 concluída (Postgres em Docker, TypeORM, migrations). Feito: modelo multi-tenant e CRUD de contas/usuários/papéis (`docs/passos/004`), ainda sem autenticação — conta ativa via `X-Tenant-Id`; protótipo navegável do app do técnico com dados de exemplo em memória e o pacote `@at-field/core` (`docs/passos/006`). Próximo: seed IBGE (passo 007); códigos de erro, `requestId` e log estruturado (passo 008, ver "Erros e logs" em `docs/ARCHITECTURE.md`); depois Firebase Auth.
+Fase 0 concluída (Postgres em Docker, TypeORM, migrations). Feito: modelo multi-tenant e CRUD de contas/usuários/papéis (`docs/passos/004`), ainda sem autenticação — conta ativa via `X-Tenant-Id`; protótipo navegável do app do técnico com dados de exemplo em memória e o pacote `@at-field/core` (`docs/passos/006`); base IBGE de estados e cidades com rotas públicas (`docs/passos/007`). Próximo: códigos de erro, `requestId` e log estruturado (passo 008, ver "Erros e logs" em `docs/ARCHITECTURE.md`); depois Firebase Auth.
 
 ## Documentação dos passos
 
