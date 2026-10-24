@@ -72,7 +72,7 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `
 
 ## Estado atual
 
-Fase 0 concluída (Postgres em Docker, TypeORM, migrations). Feito: modelo multi-tenant e CRUD de contas/usuários/papéis (`docs/passos/004`), ainda sem autenticação — conta ativa via `X-Tenant-Id`; protótipo navegável do app do técnico com dados de exemplo em memória e o pacote `@at-field/core` (`docs/passos/006`). Próximo: seed IBGE e Firebase Auth.
+Fase 0 concluída (Postgres em Docker, TypeORM, migrations). Feito: modelo multi-tenant e CRUD de contas/usuários/papéis (`docs/passos/004`), ainda sem autenticação — conta ativa via `X-Tenant-Id`; protótipo navegável do app do técnico com dados de exemplo em memória e o pacote `@at-field/core` (`docs/passos/006`). Próximo: seed IBGE (passo 007); códigos de erro, `requestId` e log estruturado (passo 008, ver "Erros e logs" em `docs/ARCHITECTURE.md`); depois Firebase Auth.
 
 ## Documentação dos passos
 
