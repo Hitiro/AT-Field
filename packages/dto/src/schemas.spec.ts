@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
+import type { z } from 'zod'
 import {
   addMemberSchema,
   createRoleSchema,
   personSchema,
   signupSchema,
+  TEXT_LIMITS,
   updateMemberSchema,
   updateRoleSchema,
+  updateTenantSchema,
 } from './schemas'
 
 const owner = {
@@ -95,5 +98,64 @@ describe('role schemas', () => {
   it('updateRoleSchema exige name ou permissions', () => {
     expect(updateRoleSchema.safeParse({}).success).toBe(false)
     expect(updateRoleSchema.safeParse({ permissions: [] }).success).toBe(true)
+  })
+})
+
+// Os limites espelham as colunas varchar (apps/api: entidades/migrations).
+describe('limites de tamanho = colunas do banco', () => {
+  const DOMAIN = '@teste.com'
+  const emailOf = (length: number) =>
+    `${'a'.repeat(length - DOMAIN.length)}${DOMAIN}`
+
+  // Caminho do primeiro problema, para conferir que aponta o campo.
+  const failedPath = (result: { success: boolean; error?: z.ZodError }) =>
+    result.error?.issues.map(issue => issue.path.join('.'))
+
+  it('valores das colunas', () => {
+    expect(TEXT_LIMITS).toEqual({
+      name: 150,
+      email: 255,
+      phone: 20,
+      roleName: 60,
+    })
+  })
+
+  it('e-mail: 255 aceito, 256 rejeitado no campo email', () => {
+    expect(emailOf(255)).toHaveLength(255)
+    expect(personSchema.safeParse({ ...owner, email: emailOf(255) }).success).toBe(true)
+    const result = personSchema.safeParse({ ...owner, email: emailOf(256) })
+    expect(result.success).toBe(false)
+    expect(failedPath(result)).toEqual(['email'])
+  })
+
+  it('e-mail: o limite vale depois do trim', () => {
+    const padded = `  ${emailOf(255)}  `
+    expect(personSchema.parse({ ...owner, email: padded }).email).toHaveLength(255)
+  })
+
+  it('e-mail longo no auto-cadastro aponta owner.email', () => {
+    const result = signupSchema.safeParse({
+      tenant: { documentType: 'CPF', document: '529.982.247-25', name: 'Maria' },
+      owner: { ...owner, email: emailOf(256) },
+    })
+    expect(failedPath(result)).toEqual(['owner.email'])
+  })
+
+  it('nome: 150 aceito, 151 rejeitado (pessoa e conta)', () => {
+    expect(personSchema.safeParse({ ...owner, name: 'a'.repeat(150) }).success).toBe(true)
+    expect(failedPath(personSchema.safeParse({ ...owner, name: 'a'.repeat(151) }))).toEqual(['name'])
+    expect(updateTenantSchema.safeParse({ name: 'a'.repeat(150) }).success).toBe(true)
+    expect(updateTenantSchema.safeParse({ name: 'a'.repeat(151) }).success).toBe(false)
+  })
+
+  it('telefone: 20 aceito, 21 rejeitado', () => {
+    expect(personSchema.safeParse({ ...owner, phone: '1'.repeat(20) }).success).toBe(true)
+    expect(failedPath(personSchema.safeParse({ ...owner, phone: '1'.repeat(21) }))).toEqual(['phone'])
+  })
+
+  it('nome de papel: 60 aceito, 61 rejeitado', () => {
+    expect(createRoleSchema.safeParse({ name: 'a'.repeat(60) }).success).toBe(true)
+    expect(failedPath(createRoleSchema.safeParse({ name: 'a'.repeat(61) }))).toEqual(['name'])
+    expect(updateRoleSchema.safeParse({ name: 'a'.repeat(61) }).success).toBe(false)
   })
 })

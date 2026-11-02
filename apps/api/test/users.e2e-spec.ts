@@ -5,6 +5,7 @@ import type { App } from 'supertest/types';
 import {
   CITY_TOLEDO_PR,
   createTestApp,
+  expectError,
   person,
   resetDatabase,
   signup,
@@ -76,15 +77,24 @@ describe('Users (e2e)', () => {
   });
 
   it('rejeita cidade inexistente ou com formato inválido', async () => {
-    await asTenant()
-      .post('/users')
-      .send({ ...person(2), cityId: 9999999, roleId: roles.technician })
-      .expect(400);
-    for (const cityId of [0, -1, 1.5, '4127700']) {
+    expectError(
       await asTenant()
         .post('/users')
-        .send({ ...person(2), cityId, roleId: roles.technician })
-        .expect(400);
+        .send({ ...person(2), cityId: 9999999, roleId: roles.technician }),
+      400,
+      'USR-004',
+    );
+    for (const cityId of [0, -1, 1.5, '4127700']) {
+      const body = expectError(
+        await asTenant()
+          .post('/users')
+          .send({ ...person(2), cityId, roleId: roles.technician }),
+        400,
+        'VAL-001',
+      );
+      expect(body.details).toMatchObject({
+        issues: [expect.objectContaining({ path: 'cityId' })],
+      });
     }
   });
 
@@ -96,32 +106,52 @@ describe('Users (e2e)', () => {
 
   it('não vincula a mesma pessoa duas vezes', async () => {
     await addMember(2).expect(201);
-    await addMember(2).expect(409);
+    expectError(await addMember(2), 409, 'USR-005');
   });
 
   it('rejeita papel de outra conta', async () => {
     const other = await signup(app, 2);
     const otherRoles = await asTenant(other.tenant.id).get('/roles');
     const foreignRole = (otherRoles.body as Role[])[0].id;
-    await asTenant()
-      .post('/users')
-      .send({ ...person(3), roleId: foreignRole })
-      .expect(400);
+    expectError(
+      await asTenant()
+        .post('/users')
+        .send({ ...person(3), roleId: foreignRole }),
+      400,
+      'USR-007',
+    );
   });
 
   it('valida payload e parâmetros', async () => {
-    await asTenant()
-      .post('/users')
-      .send({ ...person(2), roleId: 'x' })
-      .expect(400);
-    await asTenant().get('/users/nao-e-uuid').expect(400);
-    await asTenant().patch(`/users/${ownerId}`).send({}).expect(400);
+    expectError(
+      await asTenant()
+        .post('/users')
+        .send({ ...person(2), roleId: 'x' }),
+      400,
+      'VAL-001',
+    );
+    expectError(await asTenant().get('/users/nao-e-uuid'), 400, 'GEN-400');
+    expectError(
+      await asTenant().patch(`/users/${ownerId}`).send({}),
+      400,
+      'VAL-001',
+    );
   });
 
   it('isola usuários entre contas', async () => {
     const other = await signup(app, 2);
-    await asTenant().get(`/users/${other.owner.id}`).expect(404);
-    await asTenant(other.tenant.id).get(`/users/${ownerId}`).expect(404);
+    const foreign = expectError(
+      await asTenant().get(`/users/${other.owner.id}`),
+      404,
+      'USR-006',
+    );
+    // Não revela que o usuário existe em outra conta.
+    expect(foreign).not.toHaveProperty('details');
+    expectError(
+      await asTenant(other.tenant.id).get(`/users/${ownerId}`),
+      404,
+      'USR-006',
+    );
   });
 
   it('altera papel e status', async () => {
@@ -138,15 +168,21 @@ describe('Users (e2e)', () => {
 
   describe('último owner', () => {
     it('não pode ser suspenso, rebaixado ou removido', async () => {
-      await asTenant()
-        .patch(`/users/${ownerId}`)
-        .send({ status: 'suspended' })
-        .expect(409);
-      await asTenant()
-        .patch(`/users/${ownerId}`)
-        .send({ roleId: roles.admin })
-        .expect(409);
-      await asTenant().delete(`/users/${ownerId}`).expect(409);
+      expectError(
+        await asTenant()
+          .patch(`/users/${ownerId}`)
+          .send({ status: 'suspended' }),
+        409,
+        'USR-008',
+      );
+      expectError(
+        await asTenant()
+          .patch(`/users/${ownerId}`)
+          .send({ roleId: roles.admin }),
+        409,
+        'USR-008',
+      );
+      expectError(await asTenant().delete(`/users/${ownerId}`), 409, 'USR-008');
     });
 
     it('pode ser rebaixado quando há outro owner ativo', async () => {

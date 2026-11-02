@@ -1,13 +1,10 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import type { Request } from 'express';
 import { DataSource } from 'typeorm';
 import { z } from 'zod';
 import { Tenant } from '../tenants/entities/tenant.entity';
+import { AppException } from './errors/app.exception';
+import { requestContext } from './logging/request-context';
 
 export const TENANT_HEADER = 'x-tenant-id';
 
@@ -27,17 +24,19 @@ export class TenantGuard implements CanActivate {
     const tenantId = Array.isArray(header) ? header[0] : header;
 
     if (!tenantId || !uuidSchema.safeParse(tenantId).success) {
-      throw new ForbiddenException('Header X-Tenant-Id ausente ou inválido');
+      throw new AppException('TEN-001');
     }
 
     const tenant = await this.dataSource
       .getRepository(Tenant)
       .findOneBy({ id: tenantId });
     if (!tenant || !tenant.isActive) {
-      throw new ForbiddenException('Conta inexistente ou inativa');
+      throw new AppException('TEN-002');
     }
 
     request.tenant = tenant;
+    // A partir daqui os logs da requisição levam o tenantId.
+    requestContext.setTenantId(tenant.id);
     return true;
   }
 }

@@ -1,6 +1,6 @@
-import { BadRequestException, ConflictException } from '@nestjs/common';
 import type { Person } from '@at-field/dto';
 import { EntityManager } from 'typeorm';
+import { AppException } from '../common/errors/app.exception';
 import { City } from '../geo/entities/city.entity';
 import { User } from './entities/user.entity';
 
@@ -17,11 +17,9 @@ export async function resolvePerson(
 
   if (byCpf) {
     if (byCpf.deletedAt || !byCpf.isActive) {
-      throw new ConflictException('Usuário desativado');
+      throw new AppException('USR-001');
     }
-    if (byCpf.email !== person.email) {
-      throw new ConflictException('CPF já cadastrado com outro e-mail');
-    }
+    if (byCpf.email !== person.email) throw new AppException('USR-002');
     return byCpf;
   }
 
@@ -29,15 +27,13 @@ export async function resolvePerson(
     where: { email: person.email },
     withDeleted: true,
   });
-  if (emailTaken) {
-    throw new ConflictException('E-mail já cadastrado para outro CPF');
-  }
+  if (emailTaken) throw new AppException('USR-003');
 
   if (
     person.cityId !== undefined &&
     !(await manager.existsBy(City, { id: person.cityId }))
   ) {
-    throw new BadRequestException('Cidade inexistente');
+    throw new AppException('USR-004');
   }
 
   return manager.save(

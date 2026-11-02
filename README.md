@@ -125,6 +125,8 @@ Rotas de conta usam o header **`X-Tenant-Id`** para indicar a conta ativa. A aut
 
 Documentação interativa (Scalar, com exemplos em cURL, fetch, PowerShell etc.) em `http://localhost:4310/api`; OpenAPI em `http://localhost:4310/api-json`.
 
+Todo erro responde `{ code, message, requestId, details? }` com o header `X-Request-Id`; o catálogo de códigos (ex.: `USR-003`) está na documentação em `/api` e em `packages/dto/src/errors.ts`. Detalhes em `docs/passos/008-codigos-erro-requestid-logs.md`.
+
 ## 🗺️ Roadmap de Desenvolvimento
 
 ### Fase 0: Configuração do Ambiente e Base
@@ -140,6 +142,7 @@ Documentação interativa (Scalar, com exemplos em cURL, fetch, PowerShell etc.)
     - [X] Modelo multi-tenant: contas, usuários, vínculos, papéis e permissões.
     - [X] CRUD de contas, usuários e papéis.
     - [X] Estados e cidades (base do IBGE).
+    - [X] Códigos de erro, `requestId` e log estruturado.
     - [ ] Configuração do Firebase Authentication para login de usuários.
     - [ ] Modelagem e `migrations` das tabelas: `clients`, `service_types`.
     - [ ] Criação dos endpoints CRUD na API NestJS para Clientes e Tipos de Serviço.

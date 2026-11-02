@@ -18,7 +18,12 @@ import {
   CURRENT_IBGE_SNAPSHOT,
   loadIbgeSnapshot,
 } from '../src/geo/ibge/snapshot';
-import { CITY_TOLEDO_PR, createTestApp, resetDatabase } from './utils';
+import {
+  CITY_TOLEDO_PR,
+  createTestApp,
+  expectError,
+  resetDatabase,
+} from './utils';
 
 const CACHE = 'public, max-age=86400';
 const ERROR_CACHE = 'no-store';
@@ -99,9 +104,9 @@ describe('Geo (e2e)', () => {
     });
 
     it('UF inexistente retorna 404 e formato inválido 400', async () => {
-      await http().get('/states/XX/cities').expect(404);
-      await http().get('/states/P1/cities').expect(400);
-      await http().get('/states/PRR/cities').expect(400);
+      expectError(await http().get('/states/XX/cities'), 404, 'GEO-001');
+      expectError(await http().get('/states/P1/cities'), 400, 'VAL-001');
+      expectError(await http().get('/states/PRR/cities'), 400, 'VAL-001');
     });
   });
 
@@ -181,7 +186,7 @@ describe('Geo (e2e)', () => {
         { q: 'to', uf: 'P1' },
         { q: 'x'.repeat(61) },
       ]) {
-        await http().get('/cities').query(query).expect(400);
+        expectError(await http().get('/cities').query(query), 400, 'VAL-001');
       }
     });
 
@@ -206,10 +211,10 @@ describe('Geo (e2e)', () => {
     });
 
     it('inexistente 404, não numérico 400', async () => {
-      await http().get('/cities/9999999').expect(404);
-      await http().get('/cities/-1').expect(404);
-      await http().get('/cities/99999999999').expect(404);
-      await http().get('/cities/abc').expect(400);
+      expectError(await http().get('/cities/9999999'), 404, 'GEO-002');
+      expectError(await http().get('/cities/-1'), 404, 'GEO-002');
+      expectError(await http().get('/cities/99999999999'), 404, 'GEO-002');
+      expectError(await http().get('/cities/abc'), 400, 'GEN-400');
     });
   });
 
@@ -234,7 +239,9 @@ describe('Geo (e2e)', () => {
       vi.spyOn(app.get(GeoService), 'findCity').mockRejectedValueOnce(
         new QueryFailedError('SELECT 1', [], new Error('conexão perdida')),
       );
-      const response = await http().get('/cities/5300108').expect(500);
+      const response = await http().get('/cities/5300108');
+      expectError(response, 500, 'GEN-500');
+      expect(response.text).not.toContain('conexão perdida');
       expect(response.headers['cache-control']).toBe(ERROR_CACHE);
     });
   });

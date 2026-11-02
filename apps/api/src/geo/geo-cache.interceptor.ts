@@ -14,7 +14,8 @@ export const GEO_PUBLIC_CACHE = 'public, max-age=86400';
 export const GEO_ERROR_CACHE = 'no-store';
 
 // Começa com no-store e troca para o cache público quando o handler termina
-// sem erro. Erros de pipe, do handler ou do PgErrorFilter mantêm no-store.
+// sem erro. Erros de pipe ou do handler mantêm no-store (o AllExceptionsFilter
+// só põe no-store quando a rota ainda não definiu Cache-Control).
 // Rotas com @Res() (ex.: /cities/all) já enviaram a resposta e definem o
 // header por conta própria; aqui não se mexe em resposta já enviada.
 @Injectable()

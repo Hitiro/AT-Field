@@ -1,13 +1,9 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OWNER_ROLE } from '@at-field/dto';
 import type { AddMember, UpdateMember } from '@at-field/dto';
 import { DataSource, EntityManager, Repository } from 'typeorm';
+import { AppException } from '../common/errors/app.exception';
 import { Membership } from '../memberships/entities/membership.entity';
 import { Role } from '../roles/entities/role.entity';
 import { resolvePerson } from './people';
@@ -59,7 +55,7 @@ export class MembersService {
       const user = await resolvePerson(manager, dto);
 
       if (await manager.existsBy(Membership, { tenantId, userId: user.id })) {
-        throw new ConflictException('Usuário já vinculado a esta conta');
+        throw new AppException('USR-005');
       }
 
       const membership = await manager.save(
@@ -117,9 +113,7 @@ export class MembersService {
       where: { tenantId, userId },
       relations: { user: true, role: true },
     });
-    if (!membership) {
-      throw new NotFoundException('Usuário não encontrado nesta conta');
-    }
+    if (!membership) throw new AppException('USR-006');
     return membership;
   }
 
@@ -129,7 +123,7 @@ export class MembersService {
     roleId: string,
   ) {
     const role = await manager.findOneBy(Role, { id: roleId, tenantId });
-    if (!role) throw new BadRequestException('Papel inválido para esta conta');
+    if (!role) throw new AppException('USR-007');
     return role;
   }
 
@@ -141,8 +135,6 @@ export class MembersService {
         role: { name: OWNER_ROLE, isSystem: true },
       },
     });
-    if (owners <= 1) {
-      throw new ConflictException('A conta precisa de ao menos um owner ativo');
-    }
+    if (owners <= 1) throw new AppException('USR-008');
   }
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { validateEnv } from './env';
+import { resolveLogFormat, validateEnv } from './env';
 
 const base = {
   DATABASE_USER: 'postgres',
@@ -38,5 +38,30 @@ describe('validateEnv', () => {
   it('falha com porta inválida', () => {
     expect(() => validateEnv({ ...base, PORT: 'abc' })).toThrow();
     expect(() => validateEnv({ ...base, PORT: '-1' })).toThrow();
+  });
+
+  it('usa LOG_LEVEL=log e deixa LOG_FORMAT indefinido por padrão', () => {
+    const env = validateEnv(base);
+    expect(env.LOG_LEVEL).toBe('log');
+    expect(env.LOG_FORMAT).toBeUndefined();
+  });
+
+  it('aceita LOG_LEVEL e LOG_FORMAT válidos', () => {
+    const env = validateEnv({ ...base, LOG_LEVEL: 'warn', LOG_FORMAT: 'json' });
+    expect(env.LOG_LEVEL).toBe('warn');
+    expect(env.LOG_FORMAT).toBe('json');
+  });
+
+  it('falha com LOG_LEVEL ou LOG_FORMAT inválido', () => {
+    expect(() => validateEnv({ ...base, LOG_LEVEL: 'info' })).toThrow();
+    expect(() => validateEnv({ ...base, LOG_FORMAT: 'xml' })).toThrow();
+  });
+
+  it('resolve o formato do log: json em production, pretty fora', () => {
+    expect(resolveLogFormat('production', undefined)).toBe('json');
+    expect(resolveLogFormat('development', undefined)).toBe('pretty');
+    expect(resolveLogFormat('test', undefined)).toBe('pretty');
+    expect(resolveLogFormat('production', 'pretty')).toBe('pretty');
+    expect(resolveLogFormat('development', 'json')).toBe('json');
   });
 });

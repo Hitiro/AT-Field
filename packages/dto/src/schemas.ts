@@ -2,20 +2,34 @@ import { z } from 'zod'
 import { isValidCnpj, isValidCpf, normalizeDocument } from './document'
 import { DOCUMENT_TYPES, MEMBERSHIP_STATUSES } from './enums'
 
-const nameSchema = z.string().trim().min(2).max(150)
+// Tamanho máximo de cada texto = tamanho da coluna varchar no banco
+// (entidades/migrations da API). Texto maior é barrado aqui (VAL-001 com o
+// campo), nunca pelo Postgres (DB-007). Coluna nova ou alterada: atualize.
+export const TEXT_LIMITS = {
+  name: 150, // tenants.name, users.name
+  email: 255, // users.email
+  phone: 20, // users.phone
+  roleName: 60, // roles.name
+} as const
+
+const nameSchema = z.string().trim().min(2).max(TEXT_LIMITS.name)
 
 export const cpfSchema = z
   .string()
   .transform(normalizeDocument)
   .refine(isValidCpf, 'CPF inválido')
 
-export const emailSchema = z.string().trim().toLowerCase().pipe(z.email())
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(z.email().max(TEXT_LIMITS.email))
 
 export const personSchema = z.object({
   cpf: cpfSchema,
   name: nameSchema,
   email: emailSchema,
-  phone: z.string().trim().min(8).max(20).optional(),
+  phone: z.string().trim().min(8).max(TEXT_LIMITS.phone).optional(),
   cityId: z.number().int().positive().optional(),
 })
 
@@ -56,7 +70,7 @@ export const updateMemberSchema = z
   })
   .refine(value => value.roleId || value.status, 'Informe roleId ou status')
 
-const roleNameSchema = z.string().trim().min(2).max(60)
+const roleNameSchema = z.string().trim().min(2).max(TEXT_LIMITS.roleName)
 const permissionListSchema = z.array(z.string()).max(100)
 
 export const createRoleSchema = z.object({
