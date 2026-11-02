@@ -1,8 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { OWNER_ROLE } from '@at-field/dto';
 import type { Signup, UpdateTenant } from '@at-field/dto';
 import { DataSource, Repository } from 'typeorm';
+import { AppException } from '../common/errors/app.exception';
 import { Membership } from '../memberships/entities/membership.entity';
 import { RolesService } from '../roles/roles.service';
 import { toMemberView } from '../users/members.service';
@@ -24,9 +25,7 @@ export class TenantsService {
         where: { document: input.tenant.document },
         withDeleted: true,
       });
-      if (documentTaken) {
-        throw new ConflictException('Já existe uma conta com este documento');
-      }
+      if (documentTaken) throw new AppException('TEN-003');
 
       const user = await resolvePerson(manager, input.owner);
       const tenant = await manager.save(manager.create(Tenant, input.tenant));

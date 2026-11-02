@@ -21,3 +21,4 @@ Modelo:
 | 005 | [Atualização geral para as últimas versões estáveis](005-atualizacao-dependencias.md) | 2026-10-22 |
 | 006 | [Protótipo navegável do app mobile e pacote `@at-field/core`](006-prototipo-mobile.md) | 2026-10-23 |
 | 007 | [Base IBGE de estados e cidades](007-base-ibge-estados-cidades.md) | 2026-10-24 |
+| 008 | [Códigos de erro, requestId e log estruturado](008-codigos-erro-requestid-logs.md) | 2026-10-24 |

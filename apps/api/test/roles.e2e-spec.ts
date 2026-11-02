@@ -3,7 +3,13 @@ import { PERMISSION_KEYS } from '@at-field/dto';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import type { App } from 'supertest/types';
-import { createTestApp, person, resetDatabase, signup } from './utils';
+import {
+  createTestApp,
+  expectError,
+  person,
+  resetDatabase,
+  signup,
+} from './utils';
 
 type Role = {
   id: string;
@@ -64,12 +70,19 @@ describe('Roles (e2e)', () => {
   });
 
   it('rejeita nome duplicado e permissão inexistente', async () => {
-    await asTenant().post('/roles').send({ name: 'admin' }).expect(409);
+    expectError(
+      await asTenant().post('/roles').send({ name: 'admin' }),
+      409,
+      'ROL-005',
+    );
     const invalid = await asTenant()
       .post('/roles')
-      .send({ name: 'Novo', permissions: ['foo:bar'] })
-      .expect(400);
-    expect(invalid.body.message).toContain('foo:bar');
+      .send({ name: 'Novo', permissions: ['users:read', 'foo:bar'] });
+    expectError(invalid, 400, 'ROL-006');
+    expect(invalid.body).toMatchObject({
+      code: 'ROL-006',
+      details: { permissions: ['foo:bar'] },
+    });
   });
 
   it('edita papel customizado', async () => {
@@ -89,11 +102,12 @@ describe('Roles (e2e)', () => {
 
   it('protege papéis de sistema', async () => {
     const admin = await roleByName('admin');
-    await asTenant()
-      .patch(`/roles/${admin.id}`)
-      .send({ name: 'Chefe' })
-      .expect(409);
-    await asTenant().delete(`/roles/${admin.id}`).expect(409);
+    expectError(
+      await asTenant().patch(`/roles/${admin.id}`).send({ name: 'Chefe' }),
+      409,
+      'ROL-002',
+    );
+    expectError(await asTenant().delete(`/roles/${admin.id}`), 409, 'ROL-003');
   });
 
   it('não exclui papel em uso e exclui papel livre', async () => {
@@ -105,19 +119,28 @@ describe('Roles (e2e)', () => {
       .post('/users')
       .send({ ...person(2), roleId: created.body.id })
       .expect(201);
-    await asTenant().delete(`/roles/${created.body.id}`).expect(409);
+    expectError(
+      await asTenant().delete(`/roles/${created.body.id}`),
+      409,
+      'ROL-004',
+    );
 
     const free = await asTenant()
       .post('/roles')
       .send({ name: 'Livre' })
       .expect(201);
     await asTenant().delete(`/roles/${free.body.id}`).expect(204);
-    await asTenant().get(`/roles/${free.body.id}`).expect(404);
+    expectError(await asTenant().get(`/roles/${free.body.id}`), 404, 'ROL-001');
   });
 
   it('isola papéis entre contas', async () => {
     const other = await signup(app, 2);
     const admin = await roleByName('admin');
-    await asTenant(other.tenant.id).get(`/roles/${admin.id}`).expect(404);
+    const body = expectError(
+      await asTenant(other.tenant.id).get(`/roles/${admin.id}`),
+      404,
+      'ROL-001',
+    );
+    expect(body).not.toHaveProperty('details');
   });
 });

@@ -79,6 +79,7 @@ cd apps/mobile && npx expo-doctor
 ## Pendências
 
 - Avaliar atualizar o Node da máquina (24 LTS ou 26) e então o `@types/node`.
+- Nas próximas atualizações de `pg`/`pg-pool`: revisar as mensagens exatas do driver em `apps/api/src/common/errors/pg-errors.ts` e atualizar `PG_MESSAGES_VERIFIED_FOR` (passo 008). O `pg-errors.spec.ts` falha, dizendo o que revisar, se o major.minor instalado mudar.
 - Voltar ao ESLint 10 no mobile quando o `eslint-plugin-react` suportar.
 - Adotar TypeScript 7 quando Nest CLI, typescript-eslint e Vitest suportarem.
 - Reinstalações com `nodeLinker: hoisted` às vezes deixam atalhos velhos em `node_modules/.bin` (erro "Cannot find module ... bin"). A solução é apagar os `node_modules` e rodar `pnpm install`.

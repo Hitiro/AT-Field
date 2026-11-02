@@ -1,13 +1,9 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SYSTEM_ROLES } from '@at-field/dto';
 import type { CreateRole, UpdateRole } from '@at-field/dto';
 import { EntityManager, In, Repository } from 'typeorm';
+import { AppException } from '../common/errors/app.exception';
 import { Membership } from '../memberships/entities/membership.entity';
 import { Permission } from './entities/permission.entity';
 import { Role } from './entities/role.entity';
@@ -62,7 +58,7 @@ export class RolesService {
       where: { id, tenantId },
       relations: { permissions: true },
     });
-    if (!role) throw new NotFoundException('Papel não encontrado');
+    if (!role) throw new AppException('ROL-001');
     return role;
   }
 
@@ -76,9 +72,7 @@ export class RolesService {
 
   async update(tenantId: string, id: string, dto: UpdateRole) {
     const role = await this.findOne(tenantId, id);
-    if (role.isSystem) {
-      throw new ConflictException('Papel de sistema não pode ser alterado');
-    }
+    if (role.isSystem) throw new AppException('ROL-002');
     if (dto.name !== undefined && dto.name !== role.name) {
       await this.assertNameAvailable(tenantId, dto.name);
       role.name = dto.name;
@@ -91,18 +85,16 @@ export class RolesService {
 
   async remove(tenantId: string, id: string) {
     const role = await this.findOne(tenantId, id);
-    if (role.isSystem) {
-      throw new ConflictException('Papel de sistema não pode ser excluído');
-    }
+    if (role.isSystem) throw new AppException('ROL-003');
     if (await this.memberships.existsBy({ roleId: id })) {
-      throw new ConflictException('Papel em uso por usuários da conta');
+      throw new AppException('ROL-004');
     }
     await this.roles.remove(role);
   }
 
   private async assertNameAvailable(tenantId: string, name: string) {
     if (await this.roles.existsBy({ tenantId, name })) {
-      throw new ConflictException('Já existe um papel com este nome');
+      throw new AppException('ROL-005');
     }
   }
 
@@ -113,9 +105,7 @@ export class RolesService {
     if (found.length !== unique.length) {
       const known = new Set(found.map((p) => p.key));
       const invalid = unique.filter((key) => !known.has(key));
-      throw new BadRequestException(
-        `Permissões inválidas: ${invalid.join(', ')}`,
-      );
+      throw new AppException('ROL-006', { permissions: invalid });
     }
     return found;
   }

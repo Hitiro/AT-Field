@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import type {
   CitiesBundleView,
@@ -7,6 +7,7 @@ import type {
   StateView,
 } from '@at-field/dto';
 import { DataSource } from 'typeorm';
+import { AppException } from '../common/errors/app.exception';
 import { City } from './entities/city.entity';
 import { State } from './entities/state.entity';
 import { CURRENT_IBGE_SNAPSHOT, loadIbgeSnapshot } from './ibge/snapshot';
@@ -54,7 +55,7 @@ export class GeoService {
 
   async listCitiesByUf(uf: string): Promise<CityView[]> {
     const state = await this.dataSource.getRepository(State).findOneBy({ uf });
-    if (!state) throw new NotFoundException('UF inexistente');
+    if (!state) throw new AppException('GEO-001');
     const cities = await this.dataSource
       .getRepository(City)
       .createQueryBuilder('c')
@@ -95,7 +96,7 @@ export class GeoService {
             relations: { state: true },
           })
         : null;
-    if (!city) throw new NotFoundException('Cidade inexistente');
+    if (!city) throw new AppException('GEO-002');
     return { id: city.id, name: city.name, uf: city.state.uf };
   }
 

@@ -1,17 +1,46 @@
+import { ERROR_CODES, ErrorCode } from '@at-field/dto';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
+import { expect } from 'vitest';
 import { AppModule } from '../src/app.module';
+import { configureApp } from '../src/common/configure-app';
 
+// Mesma configuração do main.ts (logger e middleware do requestId), antes do
+// init para o middleware ficar à frente dos body-parsers.
 export async function createTestApp(): Promise<INestApplication<App>> {
   const moduleRef = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();
   const app = moduleRef.createNestApplication<INestApplication<App>>();
+  configureApp(app);
   await app.init();
   return app;
+}
+
+type ErrorResponseLike = {
+  status: number;
+  body: unknown;
+  headers: Record<string, string>;
+};
+
+// Confere o formato único de erro: status, código, mensagem do catálogo e
+// requestId igual ao header X-Request-Id.
+export function expectError(
+  res: ErrorResponseLike,
+  status: number,
+  code: ErrorCode,
+) {
+  expect(res.status).toBe(status);
+  expect(res.body).toMatchObject({
+    code,
+    message: ERROR_CODES[code].message,
+    requestId: res.headers['x-request-id'],
+  });
+  expect(res.headers['x-request-id']).toBeTruthy();
+  return res.body as { details?: Record<string, unknown> };
 }
 
 // Limpa os dados entre testes; mantém o catálogo de permissões e a base IBGE

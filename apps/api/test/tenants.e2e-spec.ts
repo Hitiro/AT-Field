@@ -6,6 +6,7 @@ import { DataSource } from 'typeorm';
 import {
   CITY_TOLEDO_PR,
   createTestApp,
+  expectError,
   makeCnpj,
   makeCpf,
   person,
@@ -72,7 +73,7 @@ describe('Tenants (e2e)', () => {
     });
 
     it('rejeita documento inválido com 400', async () => {
-      await http()
+      const response = await http()
         .post('/tenants')
         .send({
           tenant: {
@@ -81,13 +82,18 @@ describe('Tenants (e2e)', () => {
             name: 'Empresa X',
           },
           owner: person(1),
-        })
-        .expect(400);
+        });
+      const body = expectError(response, 400, 'VAL-001');
+      expect(body.details).toEqual({
+        issues: [
+          { path: 'tenant.document', code: 'custom', message: 'CNPJ inválido' },
+        ],
+      });
     });
 
     it('rejeita documento de conta já cadastrado com 409', async () => {
       await signup(app, 1);
-      await http()
+      const response = await http()
         .post('/tenants')
         .send({
           tenant: {
@@ -96,8 +102,28 @@ describe('Tenants (e2e)', () => {
             name: 'Outra',
           },
           owner: person(2),
-        })
-        .expect(409);
+        });
+      expectError(response, 409, 'TEN-003');
+    });
+
+    it('pessoa desativada não abre conta (409)', async () => {
+      await signup(app, 1);
+      await app
+        .get(DataSource)
+        .query('UPDATE users SET "isActive" = false WHERE cpf = $1', [
+          makeCpf(1),
+        ]);
+      const response = await http()
+        .post('/tenants')
+        .send({
+          tenant: {
+            documentType: 'CNPJ',
+            document: makeCnpj(2),
+            name: 'Empresa X',
+          },
+          owner: person(1),
+        });
+      expectError(response, 409, 'USR-001');
     });
 
     it('reaproveita a pessoa ao abrir uma segunda conta', async () => {
@@ -108,7 +134,7 @@ describe('Tenants (e2e)', () => {
 
     it('CPF existente com outro e-mail retorna 409 e não cria a conta', async () => {
       await signup(app, 1);
-      await http()
+      const response = await http()
         .post('/tenants')
         .send({
           tenant: {
@@ -117,8 +143,8 @@ describe('Tenants (e2e)', () => {
             name: 'Empresa X',
           },
           owner: { ...person(1), email: 'outro@teste.com' },
-        })
-        .expect(409);
+        });
+      expectError(response, 409, 'USR-002');
 
       const tenants = await app
         .get(DataSource)
@@ -128,7 +154,7 @@ describe('Tenants (e2e)', () => {
 
     it('e-mail já usado por outro CPF retorna 409', async () => {
       await signup(app, 1);
-      await http()
+      const response = await http()
         .post('/tenants')
         .send({
           tenant: {
@@ -137,8 +163,8 @@ describe('Tenants (e2e)', () => {
             name: 'Empresa X',
           },
           owner: { ...person(2), email: 'pessoa1@teste.com' },
-        })
-        .expect(409);
+        });
+      expectError(response, 409, 'USR-003');
     });
 
     it('grava a cidade da base IBGE no owner', async () => {
@@ -151,7 +177,7 @@ describe('Tenants (e2e)', () => {
     });
 
     it('cidade inexistente retorna 400', async () => {
-      await http()
+      const response = await http()
         .post('/tenants')
         .send({
           tenant: {
@@ -160,22 +186,26 @@ describe('Tenants (e2e)', () => {
             name: 'Empresa X',
           },
           owner: { ...person(1), cityId: 9999999 },
-        })
-        .expect(400);
+        });
+      expectError(response, 400, 'USR-004');
     });
   });
 
   describe('/tenants/current', () => {
     it('exige X-Tenant-Id válido', async () => {
-      await http().get('/tenants/current').expect(403);
-      await http()
-        .get('/tenants/current')
-        .set('X-Tenant-Id', 'nao-e-uuid')
-        .expect(403);
-      await http()
-        .get('/tenants/current')
-        .set('X-Tenant-Id', '3f1c2b9e-8a4d-4c6e-9b7a-1d2e3f4a5b6c')
-        .expect(403);
+      expectError(await http().get('/tenants/current'), 403, 'TEN-001');
+      expectError(
+        await http().get('/tenants/current').set('X-Tenant-Id', 'nao-e-uuid'),
+        403,
+        'TEN-001',
+      );
+      expectError(
+        await http()
+          .get('/tenants/current')
+          .set('X-Tenant-Id', '3f1c2b9e-8a4d-4c6e-9b7a-1d2e3f4a5b6c'),
+        403,
+        'TEN-002',
+      );
     });
 
     it('retorna e atualiza a conta', async () => {
@@ -202,10 +232,11 @@ describe('Tenants (e2e)', () => {
         .query('UPDATE tenants SET "isActive" = false WHERE id = $1', [
           tenant.id,
         ]);
-      await http()
-        .get('/tenants/current')
-        .set('X-Tenant-Id', tenant.id)
-        .expect(403);
+      expectError(
+        await http().get('/tenants/current').set('X-Tenant-Id', tenant.id),
+        403,
+        'TEN-002',
+      );
     });
   });
 });

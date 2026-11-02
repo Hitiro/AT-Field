@@ -1,11 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_FILTER, APP_PIPE } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_PIPE } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PgErrorFilter } from './common/pg-error.filter';
+import { AllExceptionsFilter } from './common/errors/all-exceptions.filter';
+import { LoggingModule } from './common/logging/logging.module';
+import { RequestContextGuard } from './common/logging/request-context.guard';
 import { Env, validateEnv } from './config/env';
 import { buildDataSourceOptions } from './database/typeorm.config';
 import { GeoModule } from './geo/geo.module';
@@ -16,6 +18,7 @@ import { UsersModule } from './users/users.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validate: validateEnv }),
+    LoggingModule,
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) =>
@@ -27,6 +30,8 @@ import { UsersModule } from './users/users.module';
           DATABASE_USER: config.get('DATABASE_USER'),
           DATABASE_PASSWORD: config.get('DATABASE_PASSWORD'),
           DATABASE_NAME: config.get('DATABASE_NAME'),
+          LOG_LEVEL: config.get('LOG_LEVEL'),
+          LOG_FORMAT: config.get('LOG_FORMAT'),
         }),
     }),
     GeoModule,
@@ -37,8 +42,15 @@ import { UsersModule } from './users/users.module';
   controllers: [AppController],
   providers: [
     AppService,
+    // Anota rota e handler no contexto para os logs de erro (não autoriza).
+    { provide: APP_GUARD, useClass: RequestContextGuard },
     { provide: APP_PIPE, useClass: ZodValidationPipe },
-    { provide: APP_FILTER, useClass: PgErrorFilter },
+    {
+      provide: APP_FILTER,
+      inject: [ConfigService],
+      useFactory: (config: ConfigService<Env, true>) =>
+        new AllExceptionsFilter(config.get('DATABASE_PORT')),
+    },
   ],
 })
 export class AppModule {}
