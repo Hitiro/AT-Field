@@ -1,36 +1,55 @@
-// apps/api/src/main.ts
+import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { apiReference } from '@scalar/nestjs-api-reference';
+import { cleanupOpenApiDoc } from 'nestjs-zod';
 import { AppModule } from './app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { RedocModule, RedocOptions } from 'nestjs-redoc';
+import { configureApp } from './common/configure-app';
+import {
+  addErrorResponses,
+  errorCatalogMarkdown,
+} from './common/errors/openapi';
+import { errorLogFields } from './common/logging/error-log-fields';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // Logs do bootstrap ficam no buffer até o AppLogger assumir (configureApp).
+  const app = await NestFactory.create(AppModule, { bufferLogs: true });
+  configureApp(app);
 
-  // Configuração do Swagger Document
   const config = new DocumentBuilder()
     .setTitle('AT-Field API')
-    .setDescription('Documentação da API para o sistema de Field Service')
+    .setDescription(
+      [
+        'Documentação da API para o sistema de Field Service.',
+        '',
+        '## Erros',
+        '',
+        'Toda resposta de erro tem o formato `{ code, message, requestId, details? }` e o header `X-Request-Id`. Informe o código e o `requestId` ao suporte.',
+        '',
+        errorCatalogMarkdown(),
+      ].join('\n'),
+    )
     .setVersion('1.0')
-    .addTag('at-field')
     .build();
-  const document = SwaggerModule.createDocument(app, config);
+  const document = addErrorResponses(
+    cleanupOpenApiDoc(SwaggerModule.createDocument(app, config)),
+  );
 
-  // Configuração do Redocly
-  const redocOptions: RedocOptions = {
-    title: 'AT-Field API Docs',
-    logo: {
-      url: 'https://redocly.github.io/redoc/petstore-logo.png', // Coloque a URL do seu logo aqui
-    },
-    sortPropsAlphabetically: true,
-    hideDownloadButton: false,
-    hideHostname: false,
-  };
+  // Documentação interativa (Scalar) em /api, com exemplos em cURL, fetch,
+  // PowerShell, Python etc. O JSON do OpenAPI fica em /api-json.
+  SwaggerModule.setup('api', app, document, { swaggerUiEnabled: false });
+  app.use('/api', apiReference({ content: document }));
 
-  // Disponibiliza o Redocly na rota /docs
-  // O primeiro argumento é o "document" do swagger que geramos acima
-  await RedocModule.setup('/api', app, document, redocOptions);
-
-  await app.listen(process.env.PORT || 4000);
+  await app.listen(process.env.PORT ?? 4310);
 }
-bootstrap();
+
+bootstrap().catch((error: unknown) => {
+  // Falha antes do AppLogger (ex.: banco fora do ar): o Logger padrão escreve
+  // o que ficou no buffer e o erro, e o processo sai com código 1.
+  Logger.flush();
+  new Logger('Bootstrap').fatal(
+    'Falha ao iniciar a API',
+    errorLogFields(error, { phase: 'bootstrap' }),
+  );
+  process.exit(1);
+});
