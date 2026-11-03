@@ -183,18 +183,7 @@ Todo erro responde `{ code, message, requestId, details? }` com o header `X-Requ
 - [ ] Captura de assinatura digital do cliente no App Mobile.
 
 ### Bonus: Integrações
-
-- [ ] Asaas (cobrança)
-
-## 📚 Documentação
-
-- [`CLAUDE.md`](CLAUDE.md) — guia rápido do repositório (estrutura, comandos, convenções)
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — arquitetura e decisões técnicas
-- [`docs/passos/`](docs/passos/README.md) — registro de cada passo do desenvolvimento
-
-## 📜 Licença
-
-Este projeto está licenciado sob a Licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+- [ ] ASAAS
 
 ---
 Feito com ❤️ por **Alberto H Tsugawa**.
