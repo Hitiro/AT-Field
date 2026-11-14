@@ -27,7 +27,7 @@ O técnico é o usuário principal (app mobile). Normalmente autônomo/MEI, cont
 - **TEC-13** — O repasse é **ajustável por chamado**, porque cada repasse é combinado na hora. Dois casos reais:
   - o ajudante compra o material → recebe o percentual **mais o material**;
   - o ajudante pega o material com o técnico → recebe só o percentual.
-- **TEC-14** — **Ajudante cadastrado** (login com CPF ou e-mail) vê no app dele os chamados que recebeu de cada técnico e **quanto tem a receber de cada um**. Um ajudante pode receber trabalho de vários técnicos. Ele é um usuário com menos recursos que o técnico principal.
+- **TEC-14** — **Ajudante cadastrado** (login com CPF ou e-mail) vê no app dele os chamados que recebeu de cada técnico e **quanto tem a receber de cada um**. Um ajudante pode receber trabalho de vários técnicos. Ele é um usuário com menos recursos que o técnico principal. **Login por CPF pendente por decisão (passo 009a):** por enquanto o acesso é só por e-mail (e senha ou Google), ver COM-07.
 
 ## Valores (quanto o técnico recebe)
 

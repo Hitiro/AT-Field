@@ -17,12 +17,12 @@ Contexto detalhado em `docs/` (ignorado pelo Git, serve de memória para agentes
 
 ## Estrutura do monorepo (pnpm workspaces)
 
-| Caminho | Conteúdo |
-| --- | --- |
-| `apps/api` | NestJS 12 (backend). Docs Scalar em `/api`, OpenAPI em `/api-json`. Porta `4310` |
-| `apps/web` | Next.js 16 (painel admin) |
-| `apps/mobile` | Expo SDK 58 / React Native 0.88 (app do técnico), código em `src/` |
-| `packages/dto` | `@at-field/dto` — DTOs/tipos compartilhados (`src/index.ts`) |
+| Caminho         | Conteúdo                                                                                                                                 |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/api`      | NestJS 12 (backend). Docs Scalar em `/api`, OpenAPI em `/api-json`. Porta `4310`                                                         |
+| `apps/web`      | Next.js 16 (painel admin)                                                                                                                |
+| `apps/mobile`   | Expo SDK 58 / React Native 0.88 (app do técnico), código em `src/`                                                                       |
+| `packages/dto`  | `@at-field/dto` — DTOs/tipos compartilhados (`src/index.ts`)                                                                             |
 | `packages/core` | `@at-field/core` — cálculo puro compartilhado (simulador, custo por km, parser do WhatsApp, agenda, resumo/financeiro), sem dependências |
 
 Gerenciador: **pnpm 10** (`nodeLinker: hoisted`), Node 22.12+ (a API carrega os pacotes ESM do Nest 12 via `require(esm)`). TypeScript fixado em `~6.0.3`. Tarefas orquestradas pelo **Turborepo** (`turbo.json`: build, dev, lint, test).
@@ -45,23 +45,34 @@ pnpm --filter mobile dev
 
 **Portas** (bloco 43xx reservado, para não conflitar com outros projetos locais): API `4310`, Web `4311`, Mobile/Metro `4312`, PostgreSQL `54310`. A da API e a do banco vêm do `.env`.
 
-Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `PORT`, `DATABASE_HOST/PORT/USER/PASSWORD/NAME`).
+Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `PORT`, `DATABASE_HOST/PORT/USER/PASSWORD/NAME`, `LOG_LEVEL`/`LOG_FORMAT`, `FIREBASE_PROJECT_ID` e, opcionais, `AUTH_CHECK_REVOKED`, `GOOGLE_APPLICATION_CREDENTIALS`, `FIREBASE_AUTH_EMULATOR_HOST` — esta só em loopback e proibida em production).
 
 ## Arquitetura e regras
 
 - **Custo baixo é requisito:** prefira open source e gratuito; serviço externo pago só com justificativa e atrás de um adapter próprio (trocar de provedor sem reescrever).
 
 - **Cálculo puro compartilhado em `packages/core`; persistência e decisão oficial na API** (regra D1, passo 006). Persistência, integrações e regras com estado ficam só na API; Web e Mobile são camadas de apresentação que consomem a API e podem usar o `@at-field/core` para mostrar cálculos na hora. Nada de I/O, relógio ou dependência no `core`.
+
 - **TypeScript strict** em todos os pacotes. A API compila para CommonJS: imports relativos **sem** extensão `.js`.
+
 - **Tipos/DTOs compartilhados** em `packages/dto` (compila para `dist/`; rode `pnpm --filter @at-field/dto build` se alterar, o Turborepo faz isso em `pnpm dev`). Verifique `packages/` antes de criar estruturas novas; reutilize.
+
 - **Validação** de payloads com **Zod** (na API via `nestjs-zod`, não `class-validator`). Limite de todo texto = tamanho da coluna `varchar` (`TEXT_LIMITS` em `packages/dto/src/schemas.ts`); coluna nova ou alterada atualiza o limite.
+
 - **Erros e logs (passo 008):** todo erro de domínio é `throw new AppException('USR-003', details?)` com código do catálogo `ERROR_CODES` (`packages/dto/src/errors.ts`); nunca `BadRequestException` & cia. diretamente. Novo erro = novo código no catálogo + entrada em `PUBLISHED` (`errors.spec.ts`); código publicado nunca é reaproveitado. Resposta de erro `{ code, message, requestId, details? }` pelo `AllExceptionsFilter`; log JSON pelo `AppLogger` com `requestId`/`tenantId`. Mensagens de erro nunca citam o valor enviado. **`logger.error`/`fatal` (e `warn` que registra um erro, como o 4xx do Postgres) sempre com o objeto de erro passado pelo helper:** `this.logger.error('Mensagem fixa', errorLogFields(err, extra?))` (`apps/api/src/common/logging/error-log-fields.ts`); nunca interpolar dado pessoal na mensagem nem logar headers/corpo. Chave nova com dado sensível entra em `DEFAULT_REDACT_KEYS` (o redact casa a chave exata).
+
 - **ORM:** TypeORM, com `synchronize: false`; schema só via migrations.
+
 - **Banco:** PostgreSQL (via Docker). Toda alteração estrutural via **migrations**. Tabelas do MVP: `clients`, `service_types`, `users`, `service_calls`. `states`/`cities` (IBGE) são referência global sem `tenantId`, carregadas por migration a partir de um retrato versionado (passo 007).
+
 - **Multi-tenant:** tenant = conta CPF/CNPJ; usuários ligados por `memberships` (N:N) com papel por vínculo; `tenantId` em toda tabela de negócio; tenant ativo via `X-Tenant-Id`. Ver `docs/passos/002-modelo-multi-tenant.md`.
-- **Auth:** Firebase Authentication; a API valida o Bearer Token nas rotas protegidas (`users.firebaseUid` único). Push via FCM.
+
+- **Auth (passo 009a):** Firebase Authentication (e-mail/senha e Google); `AuthGuard` global exige `Authorization: Bearer <ID token>` em toda rota, salvo `@Public()`; `@AllowUnregistered()` só no auto-cadastro. Todo acesso exige e-mail verificado (`AUT-007`). `users.firebaseUid` único, ligado no auto-cadastro ou no primeiro login pelo e-mail. Rotas de conta exigem vínculo **ativo** (`TenantGuard`, `TEN-002`). O SDK (`firebase-admin`) fica atrás do adapter `AuthProvider` (`apps/api/src/auth/`); nos e2e, `FakeAuthProvider` (`test/`) via `overrideProvider`. Nunca logar token, uid nem e-mail. Push via FCM.
+
 - **Autorização:** RBAC (`roles` por tenant, `permissions` globais) com permissões `módulo:ação` via `@RequirePermissions`. API keys para integradores (só quando houver demanda): guardar **hash** (SHA-256), nunca o token. Sem OAuth2 próprio. Detalhes em `docs/ARCHITECTURE.md`.
+
 - **Storage (fotos de RAT):** upload direto para a API, salvo **localmente no servidor** em **volume mapeado do Docker** (decisão atual: não usar Firebase Storage).
+
 - **Asaas (faturamento):** ao criar um `client`, gravar com sincronização pendente e criar no Asaas via job com retry, guardando `asaasCustomerId`; webhooks (`PAYMENT_RECEIVED`, `PAYMENT_OVERDUE`) atualizam o status local; validar sempre o token do Asaas no header do webhook.
 
 ## Convenções
@@ -74,7 +85,7 @@ Variáveis de ambiente: copie `.env.example` para `apps/api/.env` (`NODE_ENV`, `
 
 ## Estado atual
 
-Fase 0 concluída (Postgres em Docker, TypeORM, migrations). Feito: modelo multi-tenant e CRUD de contas/usuários/papéis (`docs/passos/004`), ainda sem autenticação — conta ativa via `X-Tenant-Id`; protótipo navegável do app do técnico com dados de exemplo em memória e o pacote `@at-field/core` (`docs/passos/006`); base IBGE de estados e cidades com rotas públicas (`docs/passos/007`); códigos de erro, `requestId` e log estruturado (`docs/passos/008`, regra COM-06). Próximo: Firebase Auth.
+Fase 0 concluída (Postgres em Docker, TypeORM, migrations). Feito: modelo multi-tenant e CRUD de contas/usuários/papéis (`docs/passos/004`), conta ativa via `X-Tenant-Id`; protótipo navegável do app do técnico com dados de exemplo em memória e o pacote `@at-field/core` (`docs/passos/006`); base IBGE de estados e cidades com rotas públicas (`docs/passos/007`); códigos de erro, `requestId` e log estruturado (`docs/passos/008`, regra COM-06); autenticação Firebase na API (`docs/passos/009`, parte 009a, regra COM-07). Próximo: 009b (RBAC com `@RequirePermissions`); **não expor em produção antes dele** (até lá, todo vínculo ativo opera tudo na conta). Depois, 009c (aceite de convite).
 
 ## Documentação dos passos
 

@@ -22,3 +22,4 @@ Modelo:
 | 006 | [Protótipo navegável do app mobile e pacote `@at-field/core`](006-prototipo-mobile.md) | 2026-10-23 |
 | 007 | [Base IBGE de estados e cidades](007-base-ibge-estados-cidades.md) | 2026-10-24 |
 | 008 | [Códigos de erro, requestId e log estruturado](008-codigos-erro-requestid-logs.md) | 2026-10-24 |
+| 009 | [Autenticação Firebase (009a feito; RBAC 009b e convite 009c planejados)](009-autenticacao-firebase.md) | 2026-11-02 |

@@ -28,4 +28,13 @@ describe('AppException', () => {
     expect(error.details).toEqual({ permissions: ['foo:bar'] });
     expect(error.cause).toBe(cause);
   });
+
+  it('guarda logReason fora da resposta', () => {
+    const error = new AppException('AUT-003', undefined, {
+      logReason: 'auth/id-token-expired',
+    });
+    expect(error.getStatus()).toBe(401);
+    expect(error.logReason).toBe('auth/id-token-expired');
+    expect(JSON.stringify(error.getResponse())).not.toContain('auth/');
+  });
 });

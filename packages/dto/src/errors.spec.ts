@@ -70,6 +70,17 @@ const PUBLISHED: Record<string, number> = {
   'DB-011': 503,
   'DB-012': 503,
   'DB-013': 400,
+  // Passo 009a: autenticação (Firebase). TEN-002 mudou só a mensagem.
+  'AUT-001': 401,
+  'AUT-002': 401,
+  'AUT-003': 401,
+  'AUT-004': 401,
+  'AUT-005': 403,
+  'AUT-006': 403,
+  'AUT-007': 403,
+  'AUT-008': 503,
+  'AUT-009': 403,
+  'AUT-010': 409,
 }
 
 const entries = Object.entries(ERROR_CODES)
@@ -77,7 +88,7 @@ const entries = Object.entries(ERROR_CODES)
 describe('catálogo de códigos de erro', () => {
   it('usa o formato PREFIXO-NNN com prefixo conhecido', () => {
     expect(ERROR_CODE_PATTERN.source).toBe(
-      '^(GEN|VAL|DB|TEN|USR|ROL|GEO)-\\d{3}$',
+      '^(GEN|VAL|DB|AUT|TEN|USR|ROL|GEO)-\\d{3}$',
     )
     for (const [code] of entries) {
       expect(code).toMatch(ERROR_CODE_PATTERN)

@@ -29,6 +29,11 @@ export const DEFAULT_REDACT_KEYS = [
   'asaas-access-token',
   'secret',
   'firebaseuid',
+  // Firebase (passo 009a): token Bearer e campos da service account.
+  'bearer',
+  'credential',
+  'private_key',
+  'client_email',
   // dados pessoais (LGPD), nomes usados na API, no dto e no core
   'cpf',
   'cnpj',

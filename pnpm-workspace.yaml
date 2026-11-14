@@ -4,6 +4,12 @@ packages:
 
 nodeLinker: hoisted
 
+# firebase-admin (passo 009a): a API só usa firebase-admin/app e /auth;
+# Firestore e Storage do Google são opcionais e pesados.
+ignoredOptionalDependencies:
+  - "@google-cloud/firestore"
+  - "@google-cloud/storage"
+
 onlyBuiltDependencies:
   - "@nestjs/core"
   - "@tailwindcss/oxide"

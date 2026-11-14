@@ -1,5 +1,5 @@
 import type { DataSourceOptions } from 'typeorm';
-import type { Env } from '../config/env';
+import type { DatabaseEnv } from '../config/env';
 import { City } from '../geo/entities/city.entity';
 import { State } from '../geo/entities/state.entity';
 import { Membership } from '../memberships/entities/membership.entity';
@@ -18,7 +18,9 @@ export const entities = [
   City,
 ];
 
-export const buildDataSourceOptions = (env: Env): DataSourceOptions => ({
+export const buildDataSourceOptions = (
+  env: DatabaseEnv,
+): DataSourceOptions => ({
   type: 'postgres',
   host: env.DATABASE_HOST,
   port: env.DATABASE_PORT,

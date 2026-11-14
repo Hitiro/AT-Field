@@ -25,7 +25,7 @@ Pacotes compartilhados:
 
 - **Banco de Dados**: PostgreSQL via Docker.
 - **Storage**: Mount local para arquivos técnicos (RATs).
-- **Autenticação**: Firebase Auth com validação de tokens no backend.
+- **Autenticação**: Firebase Auth com validação de tokens no backend (projeto no plano gratuito Spark; Project ID em `apps/api/.env`; ver passo 009).
 
 ## Multi-tenancy
 
@@ -39,8 +39,14 @@ Pacotes compartilhados:
 
 Camadas, implementadas nesta ordem:
 
-1. **Usuários internos (web/mobile)**: Firebase Auth. A API valida o Bearer Token em um guard. A tabela `users` guarda `firebaseUid` (único).
-2. **RBAC**: tabelas `roles` (por tenant), `permissions` (globais) e `role_permissions`; o papel vive no `membership`.
+1. **Usuários internos (web/mobile)**: Firebase Auth (e-mail/senha e Google; **implementado no passo 009a**). A API só verifica o ID token (`firebase-admin`, `verifyIdToken`, atrás do adapter `AuthProvider` em `apps/api/src/auth/`); não cria usuários no Firebase. A tabela `users` guarda `firebaseUid` (único).
+   - `AuthGuard` global (depois do `RequestContextGuard`): toda rota exige `Authorization: Bearer <ID token>`, salvo `@Public()` (base IBGE e `GET /`); `@AllowUnregistered()` aceita quem ainda não está no banco (`POST /tenants`). Ordem: `RequestContextGuard` → `AuthGuard` → `TenantGuard`.
+   - **Todo acesso exige e-mail verificado** (`AUT-007`, antes de qualquer consulta, para não revelar cadastro).
+   - Pessoa ligada à conta de acesso no auto-cadastro (criada com o uid ou vinculada) ou no primeiro login (`UPDATE ... WHERE email = $1 AND "firebaseUid" IS NULL`, atômico). Pessoa desativada/excluída → `AUT-006`, consultado a cada requisição (vale na hora).
+   - `TenantGuard` exige **vínculo ativo** na conta do `X-Tenant-Id`; conta inexistente, inativa, alheia, vínculo convidado ou suspenso → mesmo `TEN-002`.
+   - `userId` (uuid interno, nunca o `firebaseUid`) no contexto de log; token, uid e e-mail nunca são logados; nos 401 a linha de acesso leva só o código do SDK (`reason`).
+   - `FIREBASE_AUTH_EMULATOR_HOST` (o SDK aceita token sem assinatura) só aceita host loopback e é proibida em production; e2e usam um `FakeAuthProvider` em `test/`, sem provider falso ligável por env. `GET /me` devolve a pessoa e os vínculos.
+2. **RBAC** (passo 009b, planejado): tabelas `roles` (por tenant), `permissions` (globais) e `role_permissions`; o papel vive no `membership` (o `TenantGuard` já grava `request.membership`). **Até o 009b, todo vínculo ativo opera tudo na conta: não expor em produção antes dele.**
 3. **Integradores externos (API keys)**: só quando surgir o primeiro caso real. OAuth2 próprio fica fora do escopo; se for necessário, o único fluxo previsto é `client_credentials`.
 
 Regras:

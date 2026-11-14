@@ -4,14 +4,16 @@ import { z } from 'zod'
 // - GEN: erros genéricos do HTTP, o número é o próprio status;
 // - VAL: validação de payload (Zod);
 // - DB: violações do Postgres traduzidas;
+// - AUT: autenticação (Firebase Auth, passo 009a);
 // - demais: domínio, sequencial a partir de 001 pelo módulo onde está o throw.
-// Previstos: AUT (Firebase Auth) e PRM (permissões).
+// Previsto: PRM (permissões, passo 009b), ainda sem códigos.
 // Regra: código publicado nunca muda de status nem é reaproveitado; ao
 // remover, ele vai para RETIRED_ERROR_CODES.
 export const ERROR_PREFIXES = [
   'GEN',
   'VAL',
   'DB',
+  'AUT',
   'TEN',
   'USR',
   'ROL',
@@ -113,8 +115,33 @@ export const ERROR_CODES = {
   'DB-011': { status: 503, message: 'Banco ocupado, tente novamente' },
   'DB-012': { status: 503, message: 'Banco de dados indisponível' },
   'DB-013': { status: 400, message: 'Texto com caractere inválido' },
+  'AUT-001': { status: 401, message: 'Token de acesso ausente' },
+  'AUT-002': { status: 401, message: 'Token de acesso inválido' },
+  'AUT-003': { status: 401, message: 'Sessão expirada. Entre novamente.' },
+  'AUT-004': { status: 401, message: 'Sessão revogada. Entre novamente.' },
+  'AUT-005': { status: 403, message: 'Usuário não cadastrado' },
+  'AUT-006': { status: 403, message: 'Usuário desativado' },
+  'AUT-007': { status: 403, message: 'Confirme seu e-mail para continuar' },
+  'AUT-008': {
+    status: 503,
+    message:
+      'Serviço de autenticação indisponível. Tente novamente em instantes.',
+  },
+  'AUT-009': {
+    status: 403,
+    message: 'E-mail diferente do da conta de acesso',
+  },
+  'AUT-010': {
+    status: 409,
+    message: 'Conta de acesso já vinculada a outro usuário',
+  },
   'TEN-001': { status: 403, message: 'Header X-Tenant-Id ausente ou inválido' },
-  'TEN-002': { status: 403, message: 'Conta inexistente ou inativa' },
+  // Mesma resposta para conta inexistente, inativa ou de outra pessoa
+  // (passo 009a): não revela que a conta existe.
+  'TEN-002': {
+    status: 403,
+    message: 'Conta inexistente, inativa ou sem acesso',
+  },
   'TEN-003': { status: 409, message: 'Já existe uma conta com este documento' },
   'USR-001': { status: 409, message: 'Usuário desativado' },
   'USR-002': { status: 409, message: 'CPF já cadastrado com outro e-mail' },

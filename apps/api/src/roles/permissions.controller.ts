@@ -7,6 +7,7 @@ import { RolesService } from './roles.service';
 export class PermissionsController {
   constructor(private readonly roles: RolesService) {}
 
+  // Catálogo global: só autenticado (AuthGuard), sem X-Tenant-Id.
   @Get()
   list() {
     return this.roles.listPermissions();

@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from 'vitest';
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import type { App } from 'supertest/types';
+import { DataSource } from 'typeorm';
 import {
+  asUser,
   CITY_TOLEDO_PR,
   createTestApp,
   expectError,
+  makeCpf,
   person,
   resetDatabase,
   signup,
@@ -22,7 +24,10 @@ describe('Users (e2e)', () => {
   let app: INestApplication<App>;
   let tenantId: string;
   let ownerId: string;
+  let ownerToken: string;
   let roles: Record<string, string>;
+  // Token do owner de cada conta criada no teste (id da conta → token).
+  const tokens = new Map<string, string>();
 
   beforeAll(async () => {
     app = await createTestApp();
@@ -30,10 +35,13 @@ describe('Users (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase(app);
+    tokens.clear();
     const body = await signup(app, 1);
     tenantId = body.tenant.id;
     ownerId = body.owner.id;
-    const response = await http().get('/roles').set('X-Tenant-Id', tenantId);
+    ownerToken = body.token;
+    tokens.set(tenantId, ownerToken);
+    const response = await asTenant().get('/roles');
     roles = Object.fromEntries(
       (response.body as Role[]).map((role) => [role.name, role.id]),
     );
@@ -41,13 +49,14 @@ describe('Users (e2e)', () => {
 
   afterAll(() => app.close());
 
-  const http = () => request(app.getHttpServer());
-  const asTenant = (id = tenantId) => ({
-    get: (url: string) => http().get(url).set('X-Tenant-Id', id),
-    post: (url: string) => http().post(url).set('X-Tenant-Id', id),
-    patch: (url: string) => http().patch(url).set('X-Tenant-Id', id),
-    delete: (url: string) => http().delete(url).set('X-Tenant-Id', id),
-  });
+  // Como o owner da conta (cada conta com o próprio owner).
+  const asTenant = (id = tenantId) =>
+    asUser(app, tokens.get(id) ?? ownerToken, id);
+  const signupOther = async (seed: number) => {
+    const other = await signup(app, seed);
+    tokens.set(other.tenant.id, other.token);
+    return other;
+  };
 
   const addMember = (seed: number, role = 'technician', id = tenantId) =>
     asTenant(id)
@@ -99,9 +108,30 @@ describe('Users (e2e)', () => {
   });
 
   it('vincula pessoa que já atua em outra conta sem duplicar', async () => {
-    const other = await signup(app, 2);
+    const other = await signupOther(2);
     const added = await addMember(2).expect(201);
     expect(added.body.id).toBe(other.owner.id);
+  });
+
+  it('pessoa desativada não é adicionada (USR-001)', async () => {
+    await addMember(2).expect(201);
+    await app
+      .get(DataSource)
+      .query('UPDATE users SET "isActive" = false WHERE cpf = $1', [
+        makeCpf(2),
+      ]);
+    const other = await signupOther(3);
+    const otherRoles = await asTenant(other.tenant.id).get('/roles');
+    const roleId = (otherRoles.body as Role[]).find(
+      (role) => role.name === 'technician',
+    )?.id;
+    expectError(
+      await asTenant(other.tenant.id)
+        .post('/users')
+        .send({ ...person(2), roleId }),
+      409,
+      'USR-001',
+    );
   });
 
   it('não vincula a mesma pessoa duas vezes', async () => {
@@ -110,7 +140,7 @@ describe('Users (e2e)', () => {
   });
 
   it('rejeita papel de outra conta', async () => {
-    const other = await signup(app, 2);
+    const other = await signupOther(2);
     const otherRoles = await asTenant(other.tenant.id).get('/roles');
     const foreignRole = (otherRoles.body as Role[])[0].id;
     expectError(
@@ -139,7 +169,7 @@ describe('Users (e2e)', () => {
   });
 
   it('isola usuários entre contas', async () => {
-    const other = await signup(app, 2);
+    const other = await signupOther(2);
     const foreign = expectError(
       await asTenant().get(`/users/${other.owner.id}`),
       404,
@@ -204,7 +234,7 @@ describe('Users (e2e)', () => {
   });
 
   it('remove o vínculo sem apagar a pessoa das outras contas', async () => {
-    const other = await signup(app, 2);
+    const other = await signupOther(2);
     await addMember(2).expect(201);
 
     await asTenant().delete(`/users/${other.owner.id}`).expect(204);

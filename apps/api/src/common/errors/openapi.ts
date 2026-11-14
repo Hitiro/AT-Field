@@ -46,6 +46,21 @@ export function addErrorResponses(document: OpenAPIObject): OpenAPIObject {
   return document;
 }
 
+// Rotas com @Public() (extensão `x-public`) ficam sem o Bearer global:
+// `security: []` na operação, e a extensão sai do documento.
+export function applySecurity(document: OpenAPIObject): OpenAPIObject {
+  for (const item of Object.values(document.paths ?? {})) {
+    for (const method of METHODS) {
+      const operation = item[method] as
+        (Record<string, unknown> & { security?: unknown[] }) | undefined;
+      if (!operation || !('x-public' in operation)) continue;
+      if (operation['x-public'] === true) operation.security = [];
+      delete operation['x-public'];
+    }
+  }
+  return document;
+}
+
 // Tabela do catálogo para a descrição da documentação (Scalar).
 export function errorCatalogMarkdown(): string {
   const rows = Object.entries(ERROR_CODES).map(

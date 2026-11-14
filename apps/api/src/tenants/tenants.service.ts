@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { OWNER_ROLE } from '@at-field/dto';
 import type { Signup, UpdateTenant } from '@at-field/dto';
 import { DataSource, Repository } from 'typeorm';
+import type { VerifiedIdentity } from '../auth/auth-provider';
+import { assertSignupIdentity } from '../auth/identity-link';
 import { AppException } from '../common/errors/app.exception';
 import { Membership } from '../memberships/entities/membership.entity';
 import { RolesService } from '../roles/roles.service';
@@ -19,15 +21,21 @@ export class TenantsService {
   ) {}
 
   // Auto-cadastro: conta + pessoa (nova ou existente) + vínculo owner ativo.
-  signup(input: Signup) {
+  // A pessoa fica ligada à conta de acesso do token (passo 009a). E-mail não
+  // verificado já foi barrado pelo AuthGuard (AUT-007), antes do corpo.
+  signup(input: Signup, identity: VerifiedIdentity) {
     return this.dataSource.transaction(async (manager) => {
+      // O e2e do 23505 em test/errors.e2e-spec.ts mocka o 1º
+      // EntityManager.exists; esta checagem de documento precisa continuar
+      // sendo a primeira chamada a `exists` no signup.
       const documentTaken = await manager.exists(Tenant, {
         where: { document: input.tenant.document },
         withDeleted: true,
       });
       if (documentTaken) throw new AppException('TEN-003');
 
-      const user = await resolvePerson(manager, input.owner);
+      assertSignupIdentity(identity, input.owner.email);
+      const user = await resolvePerson(manager, input.owner, identity);
       const tenant = await manager.save(manager.create(Tenant, input.tenant));
       const roles = await this.roles.createSystemRoles(manager, tenant.id);
 

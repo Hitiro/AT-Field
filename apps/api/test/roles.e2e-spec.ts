@@ -4,6 +4,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import type { App } from 'supertest/types';
 import {
+  asUser,
   createTestApp,
   expectError,
   person,
@@ -21,6 +22,7 @@ type Role = {
 describe('Roles (e2e)', () => {
   let app: INestApplication<App>;
   let tenantId: string;
+  let ownerToken: string;
 
   beforeAll(async () => {
     app = await createTestApp();
@@ -28,29 +30,30 @@ describe('Roles (e2e)', () => {
 
   beforeEach(async () => {
     await resetDatabase(app);
-    tenantId = (await signup(app, 1)).tenant.id;
+    const body = await signup(app, 1);
+    tenantId = body.tenant.id;
+    ownerToken = body.token;
   });
 
   afterAll(() => app.close());
 
   const http = () => request(app.getHttpServer());
-  const asTenant = (id = tenantId) => ({
-    get: (url: string) => http().get(url).set('X-Tenant-Id', id),
-    post: (url: string) => http().post(url).set('X-Tenant-Id', id),
-    patch: (url: string) => http().patch(url).set('X-Tenant-Id', id),
-    delete: (url: string) => http().delete(url).set('X-Tenant-Id', id),
-  });
+  const asTenant = (id = tenantId, token = ownerToken) =>
+    asUser(app, token, id);
 
   const roleByName = async (name: string) => {
     const response = await asTenant().get('/roles');
     return (response.body as Role[]).find((role) => role.name === name)!;
   };
 
-  it('GET /permissions lista o catálogo sincronizado', async () => {
-    const response = await http().get('/permissions').expect(200);
+  it('GET /permissions lista o catálogo sincronizado (só autenticado)', async () => {
+    const response = await asUser(app, ownerToken)
+      .get('/permissions')
+      .expect(200);
     expect((response.body as { key: string }[]).map((p) => p.key)).toEqual(
       [...PERMISSION_KEYS].sort(),
     );
+    expectError(await http().get('/permissions'), 401, 'AUT-001');
   });
 
   it('papéis de sistema recebem as permissões do catálogo', async () => {
@@ -137,7 +140,7 @@ describe('Roles (e2e)', () => {
     const other = await signup(app, 2);
     const admin = await roleByName('admin');
     const body = expectError(
-      await asTenant(other.tenant.id).get(`/roles/${admin.id}`),
+      await asTenant(other.tenant.id, other.token).get(`/roles/${admin.id}`),
       404,
       'ROL-001',
     );

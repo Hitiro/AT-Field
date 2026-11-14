@@ -1,5 +1,8 @@
 import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiHeader, ApiTags } from '@nestjs/swagger';
+import type { VerifiedIdentity } from '../auth/auth-provider';
+import { AllowUnregistered } from '../auth/allow-unregistered.decorator';
+import { CurrentIdentity } from '../auth/current-user.decorator';
 import { CurrentTenant } from '../common/current-tenant.decorator';
 import { TenantGuard } from '../common/tenant.guard';
 import { SignupDto, UpdateTenantDto } from './dto';
@@ -11,10 +14,16 @@ import { TenantsService } from './tenants.service';
 export class TenantsController {
   constructor(private readonly tenants: TenantsService) {}
 
-  // Público: cria a conta (CPF ou CNPJ) e o primeiro usuário (owner).
+  // Auto-cadastro: cria a conta (CPF ou CNPJ) e o primeiro usuário (owner),
+  // ligado à conta de acesso do token. Exige token com e-mail verificado e
+  // igual ao do owner; aceita quem ainda não existe no banco.
   @Post()
-  signup(@Body() dto: SignupDto) {
-    return this.tenants.signup(dto);
+  @AllowUnregistered()
+  signup(
+    @Body() dto: SignupDto,
+    @CurrentIdentity() identity: VerifiedIdentity,
+  ) {
+    return this.tenants.signup(dto, identity);
   }
 
   @Get('current')

@@ -4,6 +4,8 @@ import request from 'supertest';
 import type { App } from 'supertest/types';
 import { DataSource } from 'typeorm';
 import {
+  asUser,
+  authHeader,
   CITY_TOLEDO_PR,
   createTestApp,
   expectError,
@@ -12,6 +14,8 @@ import {
   person,
   resetDatabase,
   signup,
+  signupBody,
+  tokenOf,
 } from './utils';
 
 describe('Tenants (e2e)', () => {
@@ -26,6 +30,12 @@ describe('Tenants (e2e)', () => {
   afterAll(() => app.close());
 
   const http = () => request(app.getHttpServer());
+  // POST /tenants com o token (verificado) do e-mail informado.
+  const postTenant = (body: object, email: string) =>
+    http()
+      .post('/tenants')
+      .set(authHeader(tokenOf(email)))
+      .send(body);
 
   describe('POST /tenants (auto-cadastro)', () => {
     it('cria conta CNPJ, owner ativo e papéis de sistema', async () => {
@@ -38,9 +48,8 @@ describe('Tenants (e2e)', () => {
         membership: { status: 'active', role: { name: 'owner' } },
       });
 
-      const roles = await http()
+      const roles = await asUser(app, body.token, tenantId)
         .get('/roles')
-        .set('X-Tenant-Id', tenantId)
         .expect(200);
       const names = (roles.body as { name: string; isSystem: boolean }[]).map(
         (role) => [role.name, role.isSystem],
@@ -53,9 +62,8 @@ describe('Tenants (e2e)', () => {
     });
 
     it('cria conta CPF (autônomo) com documento mascarado', async () => {
-      const response = await http()
-        .post('/tenants')
-        .send({
+      const response = await postTenant(
+        {
           tenant: {
             documentType: 'CPF',
             document: '529.982.247-25',
@@ -66,23 +74,25 @@ describe('Tenants (e2e)', () => {
             name: 'Maria',
             email: 'MARIA@teste.com',
           },
-        })
-        .expect(201);
+        },
+        'maria@teste.com',
+      ).expect(201);
       expect(response.body.tenant.document).toBe('52998224725');
       expect(response.body.owner.email).toBe('maria@teste.com');
     });
 
     it('rejeita documento inválido com 400', async () => {
-      const response = await http()
-        .post('/tenants')
-        .send({
+      const response = await postTenant(
+        {
           tenant: {
             documentType: 'CNPJ',
             document: '11222333000182',
             name: 'Empresa X',
           },
           owner: person(1),
-        });
+        },
+        person(1).email,
+      );
       const body = expectError(response, 400, 'VAL-001');
       expect(body.details).toEqual({
         issues: [
@@ -93,21 +103,22 @@ describe('Tenants (e2e)', () => {
 
     it('rejeita documento de conta já cadastrado com 409', async () => {
       await signup(app, 1);
-      const response = await http()
-        .post('/tenants')
-        .send({
+      const response = await postTenant(
+        {
           tenant: {
             documentType: 'CNPJ',
             document: makeCnpj(1),
             name: 'Outra',
           },
           owner: person(2),
-        });
+        },
+        person(2).email,
+      );
       expectError(response, 409, 'TEN-003');
     });
 
-    it('pessoa desativada não abre conta (409)', async () => {
-      await signup(app, 1);
+    it('pessoa desativada não abre conta (403 AUT-006)', async () => {
+      const { token } = await signup(app, 1);
       await app
         .get(DataSource)
         .query('UPDATE users SET "isActive" = false WHERE cpf = $1', [
@@ -115,35 +126,23 @@ describe('Tenants (e2e)', () => {
         ]);
       const response = await http()
         .post('/tenants')
-        .send({
-          tenant: {
-            documentType: 'CNPJ',
-            document: makeCnpj(2),
-            name: 'Empresa X',
-          },
-          owner: person(1),
-        });
-      expectError(response, 409, 'USR-001');
+        .set(authHeader(token))
+        .send(signupBody(2, person(1)));
+      expectError(response, 403, 'AUT-006');
     });
 
     it('reaproveita a pessoa ao abrir uma segunda conta', async () => {
       const first = await signup(app, 1);
-      const second = await signup(app, 2, person(1));
+      const second = await signup(app, 2, person(1), first.token);
       expect(second.owner.id).toBe(first.owner.id);
     });
 
     it('CPF existente com outro e-mail retorna 409 e não cria a conta', async () => {
       await signup(app, 1);
-      const response = await http()
-        .post('/tenants')
-        .send({
-          tenant: {
-            documentType: 'CNPJ',
-            document: makeCnpj(2),
-            name: 'Empresa X',
-          },
-          owner: { ...person(1), email: 'outro@teste.com' },
-        });
+      const response = await postTenant(
+        signupBody(2, { ...person(1), email: 'outro@teste.com' }),
+        'outro@teste.com',
+      );
       expectError(response, 409, 'USR-002');
 
       const tenants = await app
@@ -152,19 +151,15 @@ describe('Tenants (e2e)', () => {
       expect(tenants[0].total).toBe(1);
     });
 
-    it('e-mail já usado por outro CPF retorna 409', async () => {
+    // Antes do passo 009a era USR-003; agora o e-mail do owner é o do token,
+    // e o token desse e-mail já está ligado à pessoa 1 (outro CPF).
+    it('e-mail já usado por outro CPF retorna 409 AUT-010', async () => {
       await signup(app, 1);
-      const response = await http()
-        .post('/tenants')
-        .send({
-          tenant: {
-            documentType: 'CNPJ',
-            document: makeCnpj(2),
-            name: 'Empresa X',
-          },
-          owner: { ...person(2), email: 'pessoa1@teste.com' },
-        });
-      expectError(response, 409, 'USR-003');
+      const response = await postTenant(
+        signupBody(2, { ...person(2), email: 'pessoa1@teste.com' }),
+        'pessoa1@teste.com',
+      );
+      expectError(response, 409, 'AUT-010');
     });
 
     it('grava a cidade da base IBGE no owner', async () => {
@@ -177,63 +172,60 @@ describe('Tenants (e2e)', () => {
     });
 
     it('cidade inexistente retorna 400', async () => {
-      const response = await http()
-        .post('/tenants')
-        .send({
-          tenant: {
-            documentType: 'CNPJ',
-            document: makeCnpj(1),
-            name: 'Empresa X',
-          },
-          owner: { ...person(1), cityId: 9999999 },
-        });
+      const response = await postTenant(
+        signupBody(1, { ...person(1), cityId: 9999999 }),
+        person(1).email,
+      );
       expectError(response, 400, 'USR-004');
     });
   });
 
   describe('/tenants/current', () => {
-    it('exige X-Tenant-Id válido', async () => {
-      expectError(await http().get('/tenants/current'), 403, 'TEN-001');
+    it('exige token e X-Tenant-Id válido', async () => {
+      const { token } = await signup(app, 1);
+      expectError(await http().get('/tenants/current'), 401, 'AUT-001');
       expectError(
-        await http().get('/tenants/current').set('X-Tenant-Id', 'nao-e-uuid'),
+        await asUser(app, token).get('/tenants/current'),
         403,
         'TEN-001',
       );
       expectError(
-        await http()
-          .get('/tenants/current')
-          .set('X-Tenant-Id', '3f1c2b9e-8a4d-4c6e-9b7a-1d2e3f4a5b6c'),
+        await asUser(app, token, 'nao-e-uuid').get('/tenants/current'),
+        403,
+        'TEN-001',
+      );
+      expectError(
+        await asUser(app, token, '3f1c2b9e-8a4d-4c6e-9b7a-1d2e3f4a5b6c').get(
+          '/tenants/current',
+        ),
         403,
         'TEN-002',
       );
     });
 
     it('retorna e atualiza a conta', async () => {
-      const { tenant } = await signup(app, 1);
+      const { tenant, token } = await signup(app, 1);
+      const owner = asUser(app, token, tenant.id);
 
-      const current = await http()
-        .get('/tenants/current')
-        .set('X-Tenant-Id', tenant.id)
-        .expect(200);
+      const current = await owner.get('/tenants/current').expect(200);
       expect(current.body.name).toBe('Empresa 1');
 
-      const updated = await http()
+      const updated = await owner
         .patch('/tenants/current')
-        .set('X-Tenant-Id', tenant.id)
         .send({ name: 'Empresa Renomeada' })
         .expect(200);
       expect(updated.body.name).toBe('Empresa Renomeada');
     });
 
     it('bloqueia conta inativa', async () => {
-      const { tenant } = await signup(app, 1);
+      const { tenant, token } = await signup(app, 1);
       await app
         .get(DataSource)
         .query('UPDATE tenants SET "isActive" = false WHERE id = $1', [
           tenant.id,
         ]);
       expectError(
-        await http().get('/tenants/current').set('X-Tenant-Id', tenant.id),
+        await asUser(app, token, tenant.id).get('/tenants/current'),
         403,
         'TEN-002',
       );
