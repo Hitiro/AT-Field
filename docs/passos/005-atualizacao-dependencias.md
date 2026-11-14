@@ -80,6 +80,8 @@ cd apps/mobile && npx expo-doctor
 
 - Avaliar atualizar o Node da máquina (24 LTS ou 26) e então o `@types/node`.
 - Nas próximas atualizações de `pg`/`pg-pool`: revisar as mensagens exatas do driver em `apps/api/src/common/errors/pg-errors.ts` e atualizar `PG_MESSAGES_VERIFIED_FOR` (passo 008). O `pg-errors.spec.ts` falha, dizendo o que revisar, se o major.minor instalado mudar.
+  - **O teste falha de propósito** em toda atualização automática de `pg`/`pg-pool` que mude o major.minor (Dependabot, Renovate, `pnpm update`). Não é teste quebrado: o PR de atualização exige **revisão manual** das mensagens do driver antes de mudar a constante. Nunca "consertar" só trocando o número.
+  - O mesmo vale para o `firebase-admin` (passo 009a): `FIREBASE_ADMIN_VERIFIED_FOR` em `apps/api/src/auth/firebase-auth.provider.ts`, conferido pelo `firebase-auth.provider.spec.ts` (códigos de erro e mensagens de falha ao baixar as chaves públicas).
 - Voltar ao ESLint 10 no mobile quando o `eslint-plugin-react` suportar.
 - Adotar TypeScript 7 quando Nest CLI, typescript-eslint e Vitest suportarem.
 - Reinstalações com `nodeLinker: hoisted` às vezes deixam atalhos velhos em `node_modules/.bin` (erro "Cannot find module ... bin"). A solução é apagar os `node_modules` e rodar `pnpm install`.

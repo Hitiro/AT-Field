@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { ERROR_CODES } from '@at-field/dto';
 import type { OpenAPIObject } from '@nestjs/swagger';
-import { addErrorResponses, errorCatalogMarkdown } from './openapi';
+import {
+  addErrorResponses,
+  applySecurity,
+  errorCatalogMarkdown,
+} from './openapi';
 
 const documentWith = (): OpenAPIObject => ({
   openapi: '3.0.0',
@@ -56,6 +60,51 @@ describe('addErrorResponses', () => {
     expect(document.paths['/users'].post?.responses['4XX']).toEqual({
       description: 'já documentado',
     });
+  });
+});
+
+describe('applySecurity', () => {
+  const documentWithPublic = (): OpenAPIObject => ({
+    openapi: '3.0.0',
+    info: { title: 'teste', version: '1' },
+    security: [{ bearer: [] }],
+    paths: {
+      '/states': {
+        get: { responses: {}, 'x-public': true } as never,
+      },
+      '/me': { get: { responses: {} } },
+      '/users': {
+        get: { responses: {}, security: [{ bearer: [] }] },
+        post: { responses: {}, 'x-public': false } as never,
+      },
+    },
+  });
+
+  it('rota pública recebe security vazio e perde a extensão', () => {
+    const document = applySecurity(documentWithPublic());
+    const operation = document.paths['/states'].get as unknown as Record<
+      string,
+      unknown
+    >;
+    expect(operation.security).toEqual([]);
+    expect(operation).not.toHaveProperty('x-public');
+  });
+
+  it('não mexe nas demais (herdam o Bearer global)', () => {
+    const document = applySecurity(documentWithPublic());
+    expect(document.paths['/me'].get).toEqual({ responses: {} });
+    expect(document.paths['/users'].get?.security).toEqual([{ bearer: [] }]);
+    expect(document.security).toEqual([{ bearer: [] }]);
+  });
+
+  it('x-public diferente de true só remove a extensão', () => {
+    const document = applySecurity(documentWithPublic());
+    const operation = document.paths['/users'].post as unknown as Record<
+      string,
+      unknown
+    >;
+    expect(operation).not.toHaveProperty('security');
+    expect(operation).not.toHaveProperty('x-public');
   });
 });
 

@@ -111,11 +111,12 @@ O app mobile já é um **protótipo navegável** com dados de exemplo em memóri
 
 ## 🔌 API (até agora)
 
-Rotas de conta usam o header **`X-Tenant-Id`** para indicar a conta ativa. A autenticação (Firebase) ainda será adicionada.
+Toda rota exige `Authorization: Bearer <ID token do Firebase>` (e-mail verificado), salvo as públicas (`GET /`, estados e cidades). Rotas de conta usam também o header **`X-Tenant-Id`** com a conta ativa, em que a pessoa precisa ter vínculo ativo. Permissões por papel ainda serão aplicadas (passo 009b). Detalhes em `docs/passos/009-autenticacao-firebase.md`.
 
 | Método | Rota | Descrição |
 | --- | --- | --- |
-| `POST` | `/tenants` | Auto-cadastro: cria a conta (CPF/CNPJ), o usuário e o vínculo `owner` |
+| `GET` | `/me` | A pessoa autenticada e os vínculos dela (contas e convites) |
+| `POST` | `/tenants` | Auto-cadastro: cria a conta (CPF/CNPJ), o usuário (ligado ao login) e o vínculo `owner` |
 | `GET` / `PATCH` | `/tenants/current` | Ver / editar a conta ativa |
 | `GET` / `POST` | `/users` | Listar / adicionar pessoas à conta |
 | `GET` / `PATCH` / `DELETE` | `/users/:id` | Ver, alterar papel/status, remover da conta |
@@ -143,7 +144,8 @@ Todo erro responde `{ code, message, requestId, details? }` com o header `X-Requ
     - [X] CRUD de contas, usuários e papéis.
     - [X] Estados e cidades (base do IBGE).
     - [X] Códigos de erro, `requestId` e log estruturado.
-    - [ ] Configuração do Firebase Authentication para login de usuários.
+    - [X] Firebase Authentication na API (Bearer, vínculo da pessoa, `GET /me`).
+    - [ ] Permissões por papel (`@RequirePermissions`) e aceite de convite.
     - [ ] Modelagem e `migrations` das tabelas: `clients`, `service_types`.
     - [ ] Criação dos endpoints CRUD na API NestJS para Clientes e Tipos de Serviço.
 - **Módulo 2: Gestão de Chamados (Backend)**

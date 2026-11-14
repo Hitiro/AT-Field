@@ -108,6 +108,8 @@ function resolve(exception: unknown, databasePort?: number): Resolved {
       code: exception.code,
       status: exception.getStatus(),
       details: exception.details,
+      // Texto fixo do código (ex.: 'auth/id-token-expired'), só no acesso.
+      reason: safeReason(exception.logReason),
     };
   }
 

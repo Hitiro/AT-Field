@@ -24,7 +24,16 @@ describe('requestContext', () => {
     expect(requestContext.get()).toBeUndefined();
     expect(() => requestContext.setTenantId('x')).not.toThrow();
     expect(() => requestContext.setHandler('/x', 'A.b')).not.toThrow();
+    expect(() => requestContext.setUserId('u-1')).not.toThrow();
     expect(requestContext.get()).toBeUndefined();
+  });
+
+  it('setUserId grava o id interno do usuário', () => {
+    const store = requestContext.run({ requestId: 'req-dddddddd' }, () => {
+      requestContext.setUserId('user-1');
+      return requestContext.get();
+    });
+    expect(store).toEqual({ requestId: 'req-dddddddd', userId: 'user-1' });
   });
 
   it('setHandler grava rota e handler', () => {

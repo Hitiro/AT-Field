@@ -3,7 +3,8 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 export type RequestContextStore = {
   requestId: string;
   tenantId?: string;
-  // Reservado para o passo do Firebase Auth.
+  // Id interno (uuid de users) da pessoa autenticada, gravado pelo AuthGuard.
+  // Nunca o firebaseUid.
   userId?: string;
   // Usados nos logs de erro (errorLogFields), não em toda linha.
   method?: string;
@@ -37,6 +38,12 @@ export const requestContext = {
   setTenantId(tenantId: string) {
     const store = storage.getStore();
     if (store) store.tenantId = tenantId;
+  },
+
+  // Fora de uma requisição não faz nada.
+  setUserId(userId: string) {
+    const store = storage.getStore();
+    if (store) store.userId = userId;
   },
 
   // Fora de uma requisição não faz nada.

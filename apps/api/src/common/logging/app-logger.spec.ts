@@ -167,6 +167,37 @@ describe('AppLogger (json)', () => {
     }
   });
 
+  it('mascara token Bearer e campos da service account (passo 009a)', () => {
+    logger().log('firebase', {
+      bearer: 'token-opaco-1',
+      credential: { private_key: 'chave-privada', client_email: 'sa@x.iam' },
+      idToken: 'token-opaco-2',
+    });
+    const [line] = lines();
+    expect(line).toMatchObject({
+      bearer: '[REDACTED]',
+      credential: '[REDACTED]',
+      idToken: '[REDACTED]',
+    });
+    logger().log('service account', {
+      private_key: 'chave-privada',
+      client_email: 'sa@x.iam',
+    });
+    expect(lines()[1]).toMatchObject({
+      private_key: '[REDACTED]',
+      client_email: '[REDACTED]',
+    });
+    const text = output.map((entry) => entry.text).join('');
+    for (const secret of [
+      'token-opaco-1',
+      'token-opaco-2',
+      'chave-privada',
+      'sa@x.iam',
+    ]) {
+      expect(text).not.toContain(secret);
+    }
+  });
+
   it('não escreve níveis abaixo do configurado', () => {
     const appLogger = new AppLogger({ json: true, level: 'warn' });
     appLogger.log('não sai');

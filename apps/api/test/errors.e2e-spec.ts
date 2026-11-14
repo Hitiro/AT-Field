@@ -16,12 +16,15 @@ import { AppLogger, levelsFrom } from '../src/common/logging/app-logger';
 import { GeoService } from '../src/geo/geo.service';
 import { TenantsService } from '../src/tenants/tenants.service';
 import {
+  asUser,
+  authHeader,
   createTestApp,
   expectError,
   makeCnpj,
   person,
   resetDatabase,
   signup,
+  tokenOf,
 } from './utils';
 
 const UUID =
@@ -210,6 +213,7 @@ describe('Erros, requestId e logs (e2e)', () => {
     it('payload inválido: 400 VAL-001 com os issues, sem o valor enviado', async () => {
       const response = await http()
         .post('/tenants')
+        .set(authHeader(tokenOf(person(1).email)))
         .send({
           tenant: {
             documentType: 'CNPJ',
@@ -228,8 +232,13 @@ describe('Erros, requestId e logs (e2e)', () => {
       expectError(await http().get('/states/P1/cities'), 400, 'VAL-001');
     });
 
-    it('sem X-Tenant-Id: 403 TEN-001', async () => {
-      expectError(await http().get('/users'), 403, 'TEN-001');
+    it('sem token: 401 AUT-001 (antes do X-Tenant-Id)', async () => {
+      expectError(await http().get('/users'), 401, 'AUT-001');
+    });
+
+    it('com token e sem X-Tenant-Id: 403 TEN-001', async () => {
+      const { token } = await signup(app, 1);
+      expectError(await asUser(app, token).get('/users'), 403, 'TEN-001');
     });
 
     it('violação de unique do Postgres: 409 DB-001', async () => {
@@ -238,6 +247,7 @@ describe('Erros, requestId e logs (e2e)', () => {
       );
       const response = await http()
         .post('/tenants')
+        .set(authHeader(tokenOf(person(1).email)))
         .send({
           tenant: {
             documentType: 'CNPJ',
@@ -259,6 +269,7 @@ describe('Erros, requestId e logs (e2e)', () => {
       const response = await http()
         .post('/tenants')
         .set('X-Request-Id', 'teste-22001-01')
+        .set(authHeader(tokenOf(person(1).email)))
         .send({
           tenant: {
             documentType: 'CNPJ',
@@ -291,6 +302,7 @@ describe('Erros, requestId e logs (e2e)', () => {
       const response = await http()
         .post('/tenants')
         .set('X-Request-Id', 'teste-23505-01')
+        .set(authHeader(tokenOf(person(2).email)))
         .send({
           tenant: {
             documentType: 'CNPJ',
@@ -370,6 +382,7 @@ describe('Erros, requestId e logs (e2e)', () => {
         const response = await http()
           .post('/tenants')
           .set('X-Request-Id', `teste-email-${length}`)
+          .set(authHeader(tokenOf(email)))
           .send(signupBody({ email }));
         const body = expectError(response, 400, 'VAL-001');
         const issues = (body.details as { issues: { path: string }[] }).issues;
@@ -384,6 +397,7 @@ describe('Erros, requestId e logs (e2e)', () => {
       const email = emailOf(255);
       const response = await http()
         .post('/tenants')
+        .set(authHeader(tokenOf(email)))
         .send(signupBody({ email }))
         .expect(201);
       expect(response.body.owner.email).toBe(email);
@@ -393,6 +407,7 @@ describe('Erros, requestId e logs (e2e)', () => {
       const response = await http()
         .post('/tenants')
         .set('X-Request-Id', 'teste-22021-01')
+        .set(authHeader(tokenOf(person(1).email)))
         .send(signupBody({}, 'Empresa\u0000X'));
       expectError(response, 400, 'DB-013');
       const lines = await linesFor('teste-22021-01', withDbWarn);
@@ -518,6 +533,7 @@ describe('Erros, requestId e logs (e2e)', () => {
       const response = await http()
         .post('/users')
         .set('X-Tenant-Id', second.tenant.id)
+        .set(authHeader(second.token))
         .set('X-Request-Id', 'teste-usr-0003')
         .send({
           ...person(3),
@@ -534,6 +550,7 @@ describe('Erros, requestId e logs (e2e)', () => {
         status: 409,
         code: 'USR-003',
         tenantId: second.tenant.id,
+        userId: second.owner.id,
       });
       expect(written.join('')).not.toContain('pessoa1@teste.com');
     });

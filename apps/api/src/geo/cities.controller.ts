@@ -10,13 +10,15 @@ import {
 } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { Public } from '../auth/public.decorator';
 import { CitySearchDto } from './dto';
 import { GEO_PUBLIC_CACHE, GeoCacheInterceptor } from './geo-cache.interceptor';
 import { GeoService, matchesEtag } from './geo.service';
 
-// Público (sem X-Tenant-Id e, no futuro, sem login): base IBGE de referência.
+// Público (@Public: sem login e sem X-Tenant-Id): base IBGE de referência.
 // Cache público só nas respostas de sucesso (GeoCacheInterceptor).
 @ApiTags('geo')
+@Public()
 @UseInterceptors(GeoCacheInterceptor)
 @Controller('cities')
 export class CitiesController {

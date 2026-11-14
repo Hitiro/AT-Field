@@ -5,6 +5,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthGuard } from './auth/auth.guard';
+import { AuthModule } from './auth/auth.module';
 import { AllExceptionsFilter } from './common/errors/all-exceptions.filter';
 import { LoggingModule } from './common/logging/logging.module';
 import { RequestContextGuard } from './common/logging/request-context.guard';
@@ -23,17 +25,14 @@ import { UsersModule } from './users/users.module';
       inject: [ConfigService],
       useFactory: (config: ConfigService<Env, true>) =>
         buildDataSourceOptions({
-          NODE_ENV: config.get('NODE_ENV'),
-          PORT: config.get('PORT'),
           DATABASE_HOST: config.get('DATABASE_HOST'),
           DATABASE_PORT: config.get('DATABASE_PORT'),
           DATABASE_USER: config.get('DATABASE_USER'),
           DATABASE_PASSWORD: config.get('DATABASE_PASSWORD'),
           DATABASE_NAME: config.get('DATABASE_NAME'),
-          LOG_LEVEL: config.get('LOG_LEVEL'),
-          LOG_FORMAT: config.get('LOG_FORMAT'),
         }),
     }),
+    AuthModule,
     GeoModule,
     RolesModule,
     TenantsModule,
@@ -42,8 +41,12 @@ import { UsersModule } from './users/users.module';
   controllers: [AppController],
   providers: [
     AppService,
-    // Anota rota e handler no contexto para os logs de erro (não autoriza).
+    // Guards globais, nesta ordem: o primeiro anota rota e handler no
+    // contexto para os logs de erro (não autoriza); o segundo autentica o
+    // Bearer do Firebase (rotas sem @Public()). Depois vêm os de controller
+    // (TenantGuard).
     { provide: APP_GUARD, useClass: RequestContextGuard },
+    { provide: APP_GUARD, useClass: AuthGuard },
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     {
       provide: APP_FILTER,

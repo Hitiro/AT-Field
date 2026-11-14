@@ -115,6 +115,25 @@ describe('AllExceptionsFilter', () => {
     expect(res.locals.error).toEqual({ code: 'ROL-006' });
   });
 
+  it('AppException com logReason: reason só na linha de acesso', () => {
+    const { run, res } = setup();
+    const { status, body } = run(
+      new AppException('AUT-003', undefined, {
+        logReason: 'auth/id-token-expired',
+      }),
+    );
+    expect(status).toBe(401);
+    expect(body).toEqual({
+      code: 'AUT-003',
+      message: ERROR_CODES['AUT-003'].message,
+      requestId: REQUEST_ID,
+    });
+    expect(res.locals.error).toEqual({
+      code: 'AUT-003',
+      reason: 'auth/id-token-expired',
+    });
+  });
+
   it('sem details não inclui a chave', () => {
     const { run } = setup();
     expect(run(new AppException('USR-006')).body).not.toHaveProperty('details');

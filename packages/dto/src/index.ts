@@ -1,3 +1,4 @@
+export * from './auth';
 export * from './enums';
 export * from './document';
 export * from './errors';

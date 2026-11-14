@@ -7,6 +7,7 @@ import { AppModule } from './app.module';
 import { configureApp } from './common/configure-app';
 import {
   addErrorResponses,
+  applySecurity,
   errorCatalogMarkdown,
 } from './common/errors/openapi';
 import { errorLogFields } from './common/logging/error-log-fields';
@@ -22,6 +23,10 @@ async function bootstrap() {
       [
         'Documentação da API para o sistema de Field Service.',
         '',
+        '## Autenticação',
+        '',
+        'Envie `Authorization: Bearer <Firebase ID token>` em toda rota, salvo as públicas (base IBGE). Rotas de conta exigem também `X-Tenant-Id` de uma conta em que a pessoa tenha vínculo ativo.',
+        '',
         '## Erros',
         '',
         'Toda resposta de erro tem o formato `{ code, message, requestId, details? }` e o header `X-Request-Id`. Informe o código e o `requestId` ao suporte.',
@@ -30,9 +35,14 @@ async function bootstrap() {
       ].join('\n'),
     )
     .setVersion('1.0')
+    // Firebase ID token em toda rota, salvo as @Public() (applySecurity).
+    .addBearerAuth()
+    .addSecurityRequirements('bearer')
     .build();
-  const document = addErrorResponses(
-    cleanupOpenApiDoc(SwaggerModule.createDocument(app, config)),
+  const document = applySecurity(
+    addErrorResponses(
+      cleanupOpenApiDoc(SwaggerModule.createDocument(app, config)),
+    ),
   );
 
   // Documentação interativa (Scalar) em /api, com exemplos em cURL, fetch,
